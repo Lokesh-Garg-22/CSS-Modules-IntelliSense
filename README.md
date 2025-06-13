@@ -33,7 +33,7 @@ A lightweight Visual Studio Code extension that provides **linting**, **rename**
 
 ## 📢 Feedback & Contributions
 
-Feel free to open issues or PRs on [GitHub](https://github.com/your-repo) — suggestions and feedback are always welcome!
+Feel free to open issues or PRs on [GitHub](https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense) — suggestions and feedback are always welcome!
 
 ---
 
