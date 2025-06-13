@@ -1,44 +1,159 @@
-# Welcome to your VS Code Extension
+# CSS Modules Intellisense — Quickstart Guide
 
-## What's in the folder
+Welcome to the development environment for your **CSS Modules Intellisense** VS Code extension!
 
-* This folder contains all of the files necessary for your extension.
-* `package.json` - this is the manifest file in which you declare your extension and command.
-  * The sample plugin registers a command and defines its title and command name. With this information VS Code can show the command in the command palette. It doesn’t yet need to load the plugin.
-* `src/extension.ts` - this is the main file where you will provide the implementation of your command.
-  * The file exports one function, `activate`, which is called the very first time your extension is activated (in this case by executing the command). Inside the `activate` function we call `registerCommand`.
-  * We pass the function containing the implementation of the command as the second parameter to `registerCommand`.
+This guide walks you through setup, build, run, and packaging instructions to help you get productive fast.
 
-## Get up and running straight away
+---
 
-* Press `F5` to open a new window with your extension loaded.
-* Run your command from the command palette by pressing (`Ctrl+Shift+P` or `Cmd+Shift+P` on Mac) and typing `Hello World`.
-* Set breakpoints in your code inside `src/extension.ts` to debug your extension.
-* Find output from your extension in the debug console.
+## 🛠 Requirements
 
-## Make changes
+- [Node.js](https://nodejs.org) (v16 or later recommended)
+- [VS Code](https://code.visualstudio.com/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [VSCE CLI](https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 
-* You can relaunch the extension from the debug toolbar after changing code in `src/extension.ts`.
-* You can also reload (`Ctrl+R` or `Cmd+R` on Mac) the VS Code window with your extension to load your changes.
+---
 
-## Explore the API
+## 📦 Install Dependencies
 
-* You can open the full set of our API when you open the file `node_modules/@types/vscode/index.d.ts`.
+From the root of your extension project, run:
 
-## Run tests
+```bash
+npm install
+```
 
-* Install the [Extension Test Runner](https://marketplace.visualstudio.com/items?itemName=ms-vscode.extension-test-runner)
-* Run the "watch" task via the **Tasks: Run Task** command. Make sure this is running, or tests might not be discovered.
-* Open the Testing view from the activity bar and click the Run Test" button, or use the hotkey `Ctrl/Cmd + ; A`
-* See the output of the test result in the Test Results view.
-* Make changes to `src/test/extension.test.ts` or create new test files inside the `test` folder.
-  * The provided test runner will only consider files matching the name pattern `**.test.ts`.
-  * You can create folders inside the `test` folder to structure your tests any way you want.
+---
 
-## Go further
+## 🧪 Run the Extension
 
-* [Follow UX guidelines](https://code.visualstudio.com/api/ux-guidelines/overview) to create extensions that seamlessly integrate with VS Code's native interface and patterns.
-* Reduce the extension size and improve the startup time by [bundling your extension](https://code.visualstudio.com/api/working-with-extensions/bundling-extension).
-* [Publish your extension](https://code.visualstudio.com/api/working-with-extensions/publishing-extension) on the VS Code extension marketplace.
-* Automate builds by setting up [Continuous Integration](https://code.visualstudio.com/api/working-with-extensions/continuous-integration).
-* Integrate to the [report issue](https://code.visualstudio.com/api/get-started/wrapping-up#issue-reporting) flow to get issue and feature requests reported by users.
+To launch the extension in a VS Code development window:
+
+```bash
+code .
+```
+
+Then press `F5` in VS Code to open a new **Extension Development Host** window with your extension loaded.
+
+---
+
+## 🔁 Code Changes
+
+Your main extension code lives in:
+
+```text
+src/extension.ts
+```
+
+Run the compile script:
+
+```bash
+npm run compile
+```
+
+or, Run the pretest script:
+
+```bash
+npm run pretest
+```
+
+and, You can also run the watch script:
+
+```bash
+npm run watch
+```
+
+---
+
+## 🧪 Testing (Optional)
+
+We recommend using **Mocha** for writing extension tests.
+
+Test entry point (if added):
+
+```text
+src/test/
+```
+
+Run the test script:
+
+```bash
+npm run test
+```
+
+More info: [Testing Extensions](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
+
+---
+
+## 📦 Package Your Extension
+
+After building with `npm run pretest`, run:
+
+```bash
+vsce package
+```
+
+This generates a file like:
+
+```bash
+css-modules-intellisense-${version}.vsix
+```
+
+---
+
+## 🚀 Install Locally
+
+To test your `.vsix` locally:
+
+```bash
+code --install-extension css-modules-intellisense-${version}.vsix
+```
+
+---
+
+## 🧾 Publish to Marketplace
+
+1. Create a [publisher account](https://code.visualstudio.com/api/working-with-extensions/publishing-extension#create-a-publisher)
+2. Login:
+
+   ```bash
+   vsce login <your-publisher-name>
+   ```
+
+3. Publish:
+
+   ```bash
+   vsce publish
+   ```
+
+---
+
+## 📂 Project Structure
+
+```text
+.
+├── src/                      # TypeScript source code
+├── dist/                     # Compiled JS output
+├── package.json              # Extension manifest
+├── README.md                 # Marketplace documentation
+├── CHANGELOG.md              # Changelog / release notes
+├── vsc-extension-quickstart.md  # This file
+├── .vscode/                  # Debug config
+└── tsconfig.json             # TypeScript configuration
+```
+
+---
+
+## 🧠 Notes
+
+- Supports `.module.css`, `.module.scss`, and `.module.less`
+- Recognizes `import styles from './file.module.css'` usage
+- Lints missing class names
+- Supports Rename across both module and usage files
+- Supports Go-to-Definition across javascript and typescript files
+- Supports Autocomplete across script files through modules
+- Planned: Hover, Find References
+
+---
+
+Happy building with **CSS Modules Intellisense**! 🎉

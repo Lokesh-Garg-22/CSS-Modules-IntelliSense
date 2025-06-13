@@ -1,9 +1,16 @@
 # Change Log
 
-All notable changes to the "css-modules-intellisense" extension will be documented in this file.
+All notable changes to this project will be documented here.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+---
 
-## [Unreleased]
+## [0.0.1] – 2025-06-13
 
-- Initial release
+### Added
+
+- Initial release of CSS Modules Linter
+- Linting of undefined class names in JS/TS
+- Rename support across JS/TS and CSS Module files
+- Support for `.module.css`, `.module.scss`, and `.module.less`
+- Go-to-Definition for `styles.className`
+- Autocomplete class names in JS/TS
