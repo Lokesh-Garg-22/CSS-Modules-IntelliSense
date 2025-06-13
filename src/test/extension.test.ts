@@ -7,7 +7,7 @@ suite("CSS Modules Intellisense Extension Tests", () => {
 
   test("Extension should activate", async () => {
     const ext = vscode.extensions.getExtension(
-      "Lokesh Garg.css-modules-intellisense"
+      "lokesh-garg.css-modules-intellisense"
     );
     await ext?.activate();
     assert.ok(ext?.isActive);
