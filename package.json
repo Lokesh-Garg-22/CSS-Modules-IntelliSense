@@ -1,15 +1,38 @@
 {
-  "name": "css-modules-intellisense",
-  "displayName": "CSS Modules IntelliSense",
+  "name": "css-scss-modules-intellisense",
+  "displayName": "CSS/SCSS Modules IntelliSense",
   "description": "Linter and tooling for CSS Modules with support for SCSS, LESS, Go-to-Definition, and Rename in JS/TS files.",
   "version": "0.0.1",
-  "publisher": "Lokesh Garg",
+  "publisher": "lokesh-garg",
+  "repository": "https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense",
   "engines": {
     "vscode": "^1.100.0"
   },
   "categories": [
     "Programming Languages"
   ],
+  "keywords": [
+    "react",
+    "css",
+    "scss",
+    "less",
+    "linting",
+    "linter",
+    "intellisense",
+    "autocompletion",
+    "suggestions",
+    "css modules",
+    "stylesheet",
+    "preprocessor",
+    "frontend",
+    "web development",
+    "developer tools",
+    "productivity",
+    "code quality",
+    "styling",
+    "module"
+  ],
+  "license": "MIT",
   "activationEvents": [
     "onLanguage:javascript",
     "onLanguage:javascriptreact",
@@ -82,7 +105,7 @@
     "@types/node": "^20.19.0",
     "@types/postcss-safe-parser": "^5.0.4",
     "@types/react": "^19.1.8",
-    "@types/vscode": "^1.101.0",
+    "@types/vscode": "^1.100.0",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
     "@vscode/test-cli": "^0.0.10",
