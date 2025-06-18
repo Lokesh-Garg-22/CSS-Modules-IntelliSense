@@ -4,6 +4,9 @@ import * as path from "path";
 const config = vscode.workspace.getConfiguration("cssModulesIntellisense");
 const aliasMap = config.get<Record<string, string>>("aliases", {});
 
+/**
+ * Resolves Path and also checks for aliases
+ */
 const resolvePath = (document: vscode.TextDocument, importPath: string) => {
   let resolvedPath = importPath;
 

@@ -48,12 +48,11 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
     const cssDoc = await vscode.workspace.openTextDocument(cssPath);
     const text = cssDoc.getText();
 
-    // find first occurrence of ".className"
     const regex = new RegExp(`\\.${className}\\b`, "g");
     const locations: vscode.LocationLink[] = [];
-    let match = regex.exec(text);
+    let match: RegExpExecArray | null;
 
-    while (match) {
+    while ((match = regex.exec(text))) {
       const offset = match.index;
       const pos = cssDoc.positionAt(offset + 1);
       locations.push({
@@ -68,8 +67,6 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
           pos.translate(0, match[0].length - 1)
         ),
       });
-
-      match = regex.exec(text);
     }
 
     return locations;

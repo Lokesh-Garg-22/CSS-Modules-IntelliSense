@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import * as path from "path";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
+import resolvePath from "../utils/resolvePath";
 
 export default class RenameProvider implements vscode.RenameProvider {
   provideRenameEdits = async (
@@ -17,12 +18,15 @@ export default class RenameProvider implements vscode.RenameProvider {
       return;
     }
 
-    const range = document.getWordRangeAtPosition(position, /\.[a-zA-Z0-9_-]+/);
-    if (!range) {
+    const wordRange = document.getWordRangeAtPosition(
+      position,
+      /\.[a-zA-Z0-9_-]+/
+    );
+    if (!wordRange) {
       return;
     }
 
-    const oldClassName = document.getText(range).replace(/^\./, "");
+    const oldClassName = document.getText(wordRange).replace(/^\./, "");
     const filePath = document.uri.fsPath;
 
     const edit = new vscode.WorkspaceEdit();
@@ -39,11 +43,7 @@ export default class RenameProvider implements vscode.RenameProvider {
 
         while ((match = importRegex.exec(text))) {
           const varName = match[1];
-          const importPath = match[2];
-          const resolvedPath = path.resolve(
-            path.dirname(doc.uri.fsPath),
-            importPath
-          );
+          const resolvedPath = resolvePath(doc, match[2]);
 
           if (resolvedPath !== filePath) {
             continue;
@@ -74,10 +74,12 @@ export default class RenameProvider implements vscode.RenameProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
-    const range = document.getWordRangeAtPosition(position, /\.[a-zA-Z0-9_-]+/);
-    if (range) {
-      return range;
+    const wordRange = document.getWordRangeAtPosition(
+      position,
+      /\.[a-zA-Z0-9_-]+/
+    );
+    if (wordRange) {
+      return new vscode.Range(wordRange.start.translate(0, 1), wordRange.end);
     }
-    throw new Error("You can only rename CSS class selectors");
   };
 }
