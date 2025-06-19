@@ -1,16 +1,30 @@
-# Change Log
+# Changelog
 
-All notable changes to this project will be documented here.
+All notable changes to this project will be documented in this file.
 
 ---
+
+## [0.0.2] – 2025-06-XX
+
+### Added
+
+- Definition Provider now returns all definitions of class names within .module files.
+
+### Fixed
+
+- Class names were incorrectly recognized inside strings and comments.
+- Rename Provider did not rename class names within the .module file itself.
 
 ## [0.0.1] – 2025-06-13
 
 ### Added
 
-- Initial release of CSS Modules Linter
-- Linting of undefined class names in JS/TS
-- Rename support across JS/TS and CSS Module files
-- Support for `.module.css`, `.module.scss`, and `.module.less`
-- Go-to-Definition for `styles.className`
-- Autocomplete class names in JS/TS
+- Initial release of CSS Modules Linter.
+- Linting for undefined class names in JavaScript and TypeScript files.
+- Rename support across JavaScript/TypeScript and CSS Module files.
+- Support for `.module.css`, `.module.scss`, and `.module.less` files.
+- Go-to-Definition support for `styles.className` references.
+- Autocompletion of class names in JavaScript and TypeScript.
+
+[0.0.2]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.1...v0.0.2
+[0.0.1]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/releases/tag/v0.0.1

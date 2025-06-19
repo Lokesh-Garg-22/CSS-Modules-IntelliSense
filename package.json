@@ -2,9 +2,12 @@
   "name": "css-scss-modules-intellisense",
   "displayName": "CSS/SCSS Modules IntelliSense",
   "description": "Linter and tooling for CSS Modules with support for SCSS, LESS, Go-to-Definition, and Rename in JS/TS files.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "lokesh-garg",
-  "repository": "https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense.git"
+  },
   "engines": {
     "vscode": "^1.100.0"
   },
@@ -118,6 +121,8 @@
   },
   "dependencies": {
     "postcss": "^8.5.5",
-    "postcss-safe-parser": "^7.0.1"
+    "postcss-safe-parser": "^7.0.1",
+    "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.2.0"
   }
 }

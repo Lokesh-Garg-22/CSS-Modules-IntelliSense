@@ -1,15 +1,34 @@
 # CSS Modules Intellisense for VS Code
 
-A lightweight Visual Studio Code extension that provides **linting**, **rename**, and **navigation features** for projects using CSS Modules — including `.module.css`, `.module.scss`, and `.module.less` files.
+A lightweight Visual Studio Code extension that provides **linting**, **rename**,
+and **navigation features** for projects using CSS Modules — including
+`.module.css`, `.module.scss`, and `.module.less` files.
 
 ---
 
 ## ✨ Features
 
-- ⚠️ **Linting**: Warns about undefined CSS module class names used in JS/TS/React files.
+- ⚠️ **Linting**: Warns about undefined CSS module class names used
+  in JS/TS/React files.
+
+  <img src="./assets/images/lintingExample.png" alt="Linting Example"
+  title="Linting Example" width="800">
+
 - ✏️ **Rename Support**: Refactor class names in CSS Modules and update all references.
+
+  <img src="./assets/images/renameExample.gif" alt="Rename Example"
+  title="Rename Example" width="800">
+
 - 🧭 **Go-to-Definition** Go-to-Definition for `styles.className`.
+
+  <img src="./assets/images/goToDefinitionExample.gif" alt="Go-to-Definition Example"
+  title="Go-to-Definition Example" width="800">
+
 - 💡 **Autocomplete** Autocomplete suggestions for class names.
+
+  <img src="./assets/images/autocompleteExample.gif" alt="Autocomplete Example"
+  title="Autocomplete Example" width="800">
+
 - 🛠️ **Supports SCSS & LESS** in addition to plain CSS.
 
 ---
@@ -33,10 +52,12 @@ A lightweight Visual Studio Code extension that provides **linting**, **rename**
 
 ## 📢 Feedback & Contributions
 
-Feel free to open issues or PRs on [GitHub](https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense) — suggestions and feedback are always welcome!
+Feel free to open issues or PRs on
+[GitHub](https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense) —
+suggestions and feedback are always welcome!
 
 ---
 
 ## 📄 License
 
-MIT
+This extension is licensed under the [MIT License](./LICENSE).
