@@ -15,7 +15,15 @@ and **navigation features** for projects using CSS Modules — including
   title="Linting Example" width="800">
 
 - ✏️ **Rename Support**: Refactor class names in CSS Modules and update all references.
+
+  <img src="./assets/images/renameExample.gif" alt="Rename Example"
+  title="Rename Example" width="800">
+
 - 🧭 **Go-to-Definition** Go-to-Definition for `styles.className`.
+
+  <img src="./assets/images/goToDefinitionExample.gif" alt="Go-to-Definition Example"
+  title="Go-to-Definition Example" width="800">
+
 - 💡 **Autocomplete** Autocomplete suggestions for class names.
 
   <img src="./assets/images/autocompleteExample.gif" alt="Autocomplete Example"
