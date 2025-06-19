@@ -1,8 +1,10 @@
 import * as vscode from "vscode";
-import * as path from "path";
 import * as fs from "fs";
 import { SUPPORTED_LANGS } from "../config";
 import extractClassNames from "../utils/extractClassNames";
+import resolvePath from "../utils/resolvePath";
+import isPositionInString from "../utils/isPositionInString";
+import isPositionInComment from "../utils/isPositionInComment";
 
 const checkDocument = async (
   document: vscode.TextDocument,
@@ -21,37 +23,28 @@ const checkDocument = async (
   while ((match = importRegex.exec(text))) {
     const varName = match[1];
     const importPath = match[2];
-
-    const fullPath = path.resolve(
-      path.dirname(document.uri.fsPath),
-      importPath
-    );
-    if (!fs.existsSync(fullPath)) {
+    const resolvedPath = resolvePath(document, importPath);
+    if (!fs.existsSync(resolvedPath)) {
       continue;
     }
-    const definedClasses = await extractClassNames(fullPath);
+    const definedClasses = await extractClassNames(resolvedPath);
 
     const usageRegex = new RegExp(`${varName}\\.([a-zA-Z0-9_]+)`, "g");
     let usageMatch: RegExpExecArray | null;
     while ((usageMatch = usageRegex.exec(text))) {
       const fullMatch = usageMatch[0];
       const className = usageMatch[1];
+      const index = usageMatch.index + fullMatch.indexOf(className);
+      const pos = document.positionAt(index);
 
-      // Skip matches inside import statements
-      const lineStart = text.lastIndexOf("\n", usageMatch.index) + 1;
-      const lineEnd = text.indexOf("\n", usageMatch.index);
-      const lineText = text.slice(
-        lineStart,
-        lineEnd === -1 ? undefined : lineEnd
-      );
-
-      if (/^\\s*import\\s+/.test(lineText)) {
+      if (
+        (await isPositionInString(document, pos)) ||
+        (await isPositionInComment(document, pos))
+      ) {
         continue;
       }
 
       if (!definedClasses.includes(className)) {
-        const index = usageMatch.index + fullMatch.indexOf(className);
-        const pos = document.positionAt(index);
         const range = new vscode.Range(pos, pos.translate(0, className.length));
         diagnostics.push(
           new vscode.Diagnostic(

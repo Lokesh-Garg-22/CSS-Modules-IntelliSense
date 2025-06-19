@@ -1,8 +1,8 @@
 import * as vscode from "vscode";
 import { SUPPORTED_LANGS, SUPPORTED_MODULE_FILES } from "./config";
-import RenameProvider from "./Providers/renameProvider";
-import CompletionItemProvider from "./Providers/completionProvider";
-import DefinitionProvider from "./Providers/definitionProvider";
+import RenameProvider from "./providers/renameProvider";
+import CompletionItemProvider from "./providers/completionProvider";
+import DefinitionProvider from "./providers/definitionProvider";
 import checkDocument from "./libs/checkDocument";
 
 export function activate(context: vscode.ExtensionContext) {
