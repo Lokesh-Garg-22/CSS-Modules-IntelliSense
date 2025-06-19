@@ -1,5 +1,4 @@
 import * as vscode from "vscode";
-import * as path from "path";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import resolvePath from "../utils/resolvePath";
@@ -33,6 +32,7 @@ export default class RenameProvider implements vscode.RenameProvider {
 
     const files = await vscode.workspace.findFiles("**/*.{ts,tsx,js,jsx}");
 
+    // Update all the Javascript Files
     await Promise.all(
       files.map(async (file) => {
         const doc = await vscode.workspace.openTextDocument(file);
@@ -56,6 +56,14 @@ export default class RenameProvider implements vscode.RenameProvider {
             const index =
               usageMatch.index + usageMatch[0].indexOf(oldClassName);
             const pos = doc.positionAt(index);
+
+            if (
+              (await isPositionInString(doc, pos)) ||
+              (await isPositionInComment(doc, pos))
+            ) {
+              continue;
+            }
+
             const usageRange = new vscode.Range(
               pos,
               pos.translate(0, oldClassName.length)
@@ -66,6 +74,22 @@ export default class RenameProvider implements vscode.RenameProvider {
         }
       })
     );
+
+    // Update the Css Module File
+    const text = document.getText();
+    const classNameRegex = new RegExp(`\\.${oldClassName}\\b`, "g");
+    let match: RegExpExecArray | null;
+
+    while ((match = classNameRegex.exec(text))) {
+      const offset = match.index;
+      const pos = document.positionAt(offset + 1);
+      const usageRange = new vscode.Range(
+        pos,
+        pos.translate(0, oldClassName.length)
+      );
+
+      edit.replace(document.uri, usageRange, newName);
+    }
 
     return edit;
   };
