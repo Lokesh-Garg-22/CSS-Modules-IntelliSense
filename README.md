@@ -11,22 +11,22 @@ and **navigation features** for projects using CSS Modules — including
 - ⚠️ **Linting**: Warns about undefined CSS module class names used
   in JS/TS/React files.
 
-  <img src="./assets/images/lintingExample.png" alt="Linting Example"
+  <img src="https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/raw/main/assets/images/lintingExample.png" alt="Linting Example"
   title="Linting Example" width="800">
 
 - ✏️ **Rename Support**: Refactor class names in CSS Modules and update all references.
 
-  <img src="./assets/images/renameExample.gif" alt="Rename Example"
+  <img src="https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/raw/main/assets/images/renameExample.gif" alt="Rename Example"
   title="Rename Example" width="800">
 
 - 🧭 **Go-to-Definition** Go-to-Definition for `styles.className`.
 
-  <img src="./assets/images/goToDefinitionExample.gif" alt="Go-to-Definition Example"
+  <img src="https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/raw/main/assets/images/goToDefinitionExample.gif" alt="Go-to-Definition Example"
   title="Go-to-Definition Example" width="800">
 
 - 💡 **Autocomplete** Autocomplete suggestions for class names.
 
-  <img src="./assets/images/autocompleteExample.gif" alt="Autocomplete Example"
+  <img src="https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/raw/main/assets/images/autocompleteExample.gif" alt="Autocomplete Example"
   title="Autocomplete Example" width="800">
 
 - 🛠️ **Supports SCSS & LESS** in addition to plain CSS.
