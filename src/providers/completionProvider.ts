@@ -3,7 +3,7 @@ import * as fs from "fs";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import extractClassNames from "../utils/extractClassNames";
-import resolvePath from "../utils/resolvePath";
+import getResolvedPath from "../utils/getPath";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
@@ -42,7 +42,7 @@ export default class CompletionItemProvider
       return;
     }
 
-    const resolvedPath = resolvePath(document, imp[1]);
+    const resolvedPath = getResolvedPath(document, imp[1]);
 
     if (!fs.existsSync(resolvedPath)) {
       return;

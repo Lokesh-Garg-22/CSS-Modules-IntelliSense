@@ -7,7 +7,7 @@ const aliasMap = config.get<Record<string, string>>("aliases", {});
 /**
  * Resolves Path and also checks for aliases
  */
-const resolvePath = (document: vscode.TextDocument, importPath: string) => {
+const getResolvedPath = (document: vscode.TextDocument, importPath: string) => {
   let resolvedPath = importPath;
 
   // Check for alias
@@ -40,4 +40,4 @@ const resolvePath = (document: vscode.TextDocument, importPath: string) => {
   return resolvedPath;
 };
 
-export default resolvePath;
+export default getResolvedPath;

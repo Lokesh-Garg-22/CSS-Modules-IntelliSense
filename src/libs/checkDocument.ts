@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import * as fs from "fs";
 import { SUPPORTED_LANGS } from "../config";
 import extractClassNames from "../utils/extractClassNames";
-import resolvePath from "../utils/resolvePath";
+import getResolvedPath from "../utils/getPath";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 
@@ -23,7 +23,7 @@ const checkDocument = async (
   while ((match = importRegex.exec(text))) {
     const varName = match[1];
     const importPath = match[2];
-    const resolvedPath = resolvePath(document, importPath);
+    const resolvedPath = getResolvedPath(document, importPath);
     if (!fs.existsSync(resolvedPath)) {
       continue;
     }

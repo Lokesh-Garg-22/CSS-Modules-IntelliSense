@@ -1,8 +1,10 @@
 import * as vscode from "vscode";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
-import resolvePath from "../utils/resolvePath";
+import getResolvedPath from "../utils/getPath";
+import getAllFiles from "../utils/getAllFiles";
 
+// TODO only works for the css module files, make a separate one for the script files
 export default class RenameProvider implements vscode.RenameProvider {
   provideRenameEdits = async (
     document: vscode.TextDocument,
@@ -30,7 +32,7 @@ export default class RenameProvider implements vscode.RenameProvider {
 
     const edit = new vscode.WorkspaceEdit();
 
-    const files = await vscode.workspace.findFiles("**/*.{ts,tsx,js,jsx}");
+    const files = await getAllFiles();
 
     // Update all the Javascript Files
     await Promise.all(
@@ -43,7 +45,7 @@ export default class RenameProvider implements vscode.RenameProvider {
 
         while ((match = importRegex.exec(text))) {
           const varName = match[1];
-          const resolvedPath = resolvePath(doc, match[2]);
+          const resolvedPath = getResolvedPath(doc, match[2]);
 
           if (resolvedPath !== filePath) {
             continue;
