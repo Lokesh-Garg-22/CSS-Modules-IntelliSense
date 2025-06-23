@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import resolvePath from "../utils/resolvePath";
-import getAllFiles from "../utils/getAllFiles";
 
 export default class RenameProvider implements vscode.RenameProvider {
   provideRenameEdits = async (
@@ -31,7 +30,7 @@ export default class RenameProvider implements vscode.RenameProvider {
 
     const edit = new vscode.WorkspaceEdit();
 
-    const files = await vscode.workspace.findFiles("**/*.{ts,tsx,js,jsx}");
+    const files = await getAllFiles();
 
     // Update all the Javascript Files
     await Promise.all(
