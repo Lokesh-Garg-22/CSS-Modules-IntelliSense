@@ -11,16 +11,16 @@ All notable changes to this project will be documented in this file.
 - Fixed an issue where `npm run test` did not execute correctly.
 - Prevented `node_modules` from being searched during rename operations.
 
-## [0.0.2] – 2025-06-XX
+## [0.0.2] – 2025-06-19
 
 ### Added
 
-- Definition Provider now returns all definitions of class names within .module files.
+- Definition Provider now returns all definitions of class names within `.module` files.
 
 ### Fixed
 
 - Class names were incorrectly recognized inside strings and comments.
-- Rename Provider did not rename class names within the .module file itself.
+- Rename Provider did not rename class names within the `.module` file itself.
 
 ## [0.0.1] – 2025-06-13
 
