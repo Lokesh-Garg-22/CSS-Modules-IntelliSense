@@ -91,6 +91,15 @@
           "default": {
             "~": "./src"
           }
+        },
+        "cssModulesIntellisense.blacklistPatterns": {
+          "type": "array",
+          "description": "Define blacklist Patterns.",
+          "default": [
+            "**/node_modules/**",
+            "**/*.test.ts",
+            "**/*.spec.tsx"
+          ]
         }
       }
     }
