@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import getResolvedPath from "../utils/getPath";
+import { resolveImportPathWithAliases } from "../utils/getPath";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 
@@ -40,7 +40,7 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
       return;
     }
 
-    const cssPath = getResolvedPath(document, imp[1]);
+    const cssPath = resolveImportPathWithAliases(document, imp[1]);
     if (!fs.existsSync(cssPath)) {
       return;
     }

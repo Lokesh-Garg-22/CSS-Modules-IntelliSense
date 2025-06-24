@@ -1,9 +1,11 @@
 import * as vscode from "vscode";
-import { SUPPORTED_LANGS, SUPPORTED_MODULE_FILES } from "./config";
-import RenameProvider from "./providers/renameProvider";
+import { SUPPORTED_LANGS, SUPPORTED_MODULES } from "./config";
+import ModulesRenameProvider from "./providers/renameProvider";
 import CompletionItemProvider from "./providers/completionProvider";
 import DefinitionProvider from "./providers/definitionProvider";
 import checkDocument from "./libs/checkDocument";
+import getAllFiles from "./utils/getAllFiles";
+import CacheDocuments from "./libs/cacheDocuments";
 
 export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
@@ -24,8 +26,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   // RenameProvider
   const renameProvider = vscode.languages.registerRenameProvider(
-    SUPPORTED_MODULE_FILES,
-    new RenameProvider()
+    SUPPORTED_MODULES,
+    new ModulesRenameProvider()
   );
 
   vscode.workspace.onDidOpenTextDocument((document) =>
@@ -34,8 +36,21 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidChangeTextDocument((e) =>
     checkDocument(e.document, diagnosticCollection)
   );
-  vscode.workspace.textDocuments.forEach((document) =>
-    checkDocument(document, diagnosticCollection)
+  getAllFiles().then((files) =>
+    files.forEach(async (uri) =>
+      checkDocument(
+        await vscode.workspace.openTextDocument(uri),
+        diagnosticCollection
+      )
+    )
+  );
+
+  CacheDocuments.setup(context);
+  vscode.workspace.onDidCreateFiles((e) => {
+    e.files.forEach((uri) => CacheDocuments.cacheDocument({ uri }));
+  });
+  vscode.workspace.onDidChangeTextDocument((e) =>
+    CacheDocuments.cacheDocument({ document: e.document })
   );
 
   context.subscriptions.push(

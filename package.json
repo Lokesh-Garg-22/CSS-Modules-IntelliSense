@@ -80,6 +80,75 @@
         "extensions": [
           ".jsx"
         ]
+      },
+      {
+        "id": "css",
+        "aliases": [
+          "CSS",
+          "css"
+        ],
+        "extensions": [
+          ".module.css"
+        ],
+        "configuration": "./configuration/css-language-configuration.json"
+      },
+      {
+        "id": "scss",
+        "aliases": [
+          "SCSS",
+          "scss"
+        ],
+        "extensions": [
+          ".module.scss"
+        ],
+        "configuration": "./configuration/scss-language-configuration.json"
+      },
+      {
+        "id": "sass",
+        "aliases": [
+          "SASS",
+          "sass"
+        ],
+        "extensions": [
+          ".module.sass"
+        ],
+        "configuration": "./configuration/scss-language-configuration.json"
+      },
+      {
+        "id": "less",
+        "aliases": [
+          "LESS",
+          "less"
+        ],
+        "extensions": [
+          ".module.less"
+        ],
+        "configuration": "./configuration/less-language-configuration.json"
+      },
+      {
+        "id": "stylus",
+        "aliases": [
+          "Stylus",
+          "stylus",
+          "styl"
+        ],
+        "extensions": [
+          ".module.styl",
+          ".module.stylus"
+        ],
+        "configuration": "./configuration/default-language-configuration.json"
+      },
+      {
+        "id": "postcss",
+        "aliases": [
+          "PostCSS",
+          "postcss"
+        ],
+        "extensions": [
+          ".module.pcss",
+          ".module.postcss"
+        ],
+        "configuration": "./configuration/default-language-configuration.json"
       }
     ],
     "configuration": {
