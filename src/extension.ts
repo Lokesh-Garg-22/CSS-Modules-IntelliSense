@@ -5,7 +5,7 @@ import CompletionItemProvider from "./providers/completionProvider";
 import DefinitionProvider from "./providers/definitionProvider";
 import checkDocument from "./libs/checkDocument";
 import getAllFiles from "./utils/getAllFiles";
-import CacheDocuments from "./libs/cacheDocuments";
+import CssModuleDependencyCache from "./libs/cacheDocuments";
 
 export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
@@ -45,12 +45,14 @@ export function activate(context: vscode.ExtensionContext) {
     )
   );
 
-  CacheDocuments.setup(context);
+  CssModuleDependencyCache.initialize(context);
   vscode.workspace.onDidCreateFiles((e) => {
-    e.files.forEach((uri) => CacheDocuments.cacheDocument({ uri }));
+    e.files.forEach((uri) =>
+      CssModuleDependencyCache.updateCacheForDocument({ uri })
+    );
   });
   vscode.workspace.onDidChangeTextDocument((e) =>
-    CacheDocuments.cacheDocument({ document: e.document })
+    CssModuleDependencyCache.updateCacheForDocument({ document: e.document })
   );
 
   context.subscriptions.push(

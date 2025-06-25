@@ -6,7 +6,7 @@ import {
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
 import extractClassNames from "../utils/extractClassNames";
-import CacheDocuments from "../libs/cacheDocuments";
+import CssModuleDependencyCache from "../libs/cacheDocuments";
 
 // TODO only works for the css module files, make a separate one for the script files
 export default class ModulesRenameProvider implements vscode.RenameProvider {
@@ -35,7 +35,7 @@ export default class ModulesRenameProvider implements vscode.RenameProvider {
 
     const edit = new vscode.WorkspaceEdit();
 
-    const files = CacheDocuments.getDocuments(document);
+    const files = CssModuleDependencyCache.getDependentsForDocument(document);
 
     // Update all the Javascript Files
     await Promise.all(
