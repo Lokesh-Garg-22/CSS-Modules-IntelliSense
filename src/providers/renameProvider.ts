@@ -6,7 +6,7 @@ import {
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
 import extractClassNames from "../utils/extractClassNames";
-import CssModuleDependencyCache from "../libs/cacheDocuments";
+import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 
 // TODO only works for the css module files, make a separate one for the script files
 export default class ModulesRenameProvider implements vscode.RenameProvider {

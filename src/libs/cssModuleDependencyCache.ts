@@ -35,8 +35,10 @@ export default class CssModuleDependencyCache {
    */
   static initialize(context: vscode.ExtensionContext) {
     this.context = context;
-    this.loadCache();
-    this.populateCacheFromWorkspace();
+    const loaded = this.loadCache();
+    if (!loaded) {
+      this.populateCacheFromWorkspace();
+    }
   }
 
   /**
@@ -45,7 +47,7 @@ export default class CssModuleDependencyCache {
    */
   static saveCache() {
     if (!this.context.storageUri) {
-      return;
+      return false;
     }
 
     const cacheFilePath = path.join(this.context.storageUri.fsPath, cacheFile);
@@ -64,7 +66,9 @@ export default class CssModuleDependencyCache {
       );
     } catch (error) {
       console.error("Error saving CSS Modules cache:", error);
+      return false;
     }
+    return true;
   }
 
   /**
@@ -73,12 +77,12 @@ export default class CssModuleDependencyCache {
    */
   static loadCache() {
     if (!this.context.storageUri) {
-      return;
+      return false;
     }
 
     const cacheFilePath = path.join(this.context.storageUri.fsPath, cacheFile);
     if (!fs.existsSync(cacheFilePath)) {
-      return;
+      return false;
     }
 
     try {
@@ -93,7 +97,9 @@ export default class CssModuleDependencyCache {
       );
     } catch (error) {
       console.error("Error loading CSS Modules cache:", error);
+      return false;
     }
+    return true;
   }
 
   /**

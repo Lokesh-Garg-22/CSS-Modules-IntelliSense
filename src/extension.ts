@@ -5,7 +5,7 @@ import CompletionItemProvider from "./providers/completionProvider";
 import DefinitionProvider from "./providers/definitionProvider";
 import checkDocument from "./libs/checkDocument";
 import getAllFiles from "./utils/getAllFiles";
-import CssModuleDependencyCache from "./libs/cacheDocuments";
+import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
 
 export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
