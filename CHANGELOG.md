@@ -2,7 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
----
+## [0.0.4] – 2025-06-27
+
+### Added
+
+- The extension now caches all scripts and modules in the workspace to improve performance.
 
 ## [0.0.3] – 2025-06-23
 
@@ -15,7 +19,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Definition Provider now returns all definitions of class names within `.module` files.
+- The Definition Provider now returns all occurrences of class names within
+  `.module` files.
 
 ### Fixed
 
@@ -33,6 +38,7 @@ All notable changes to this project will be documented in this file.
 - Go-to-Definition support for `styles.className` references.
 - Autocompletion of class names in JavaScript and TypeScript.
 
+[0.0.4]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.1...v0.0.2
 [0.0.1]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/releases/tag/v0.0.1

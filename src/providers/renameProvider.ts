@@ -1,16 +1,19 @@
 import * as vscode from "vscode";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
-import getResolvedPath from "../utils/getPath";
-import getAllFiles from "../utils/getAllFiles";
+import {
+  resolveImportPathWithAliases,
+  resolveWorkspaceRelativePath,
+} from "../utils/getPath";
+import extractClassNames from "../utils/extractClassNames";
+import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 
 // TODO only works for the css module files, make a separate one for the script files
-export default class RenameProvider implements vscode.RenameProvider {
+export default class ModulesRenameProvider implements vscode.RenameProvider {
   provideRenameEdits = async (
     document: vscode.TextDocument,
     position: vscode.Position,
-    newName: string,
-    token: vscode.CancellationToken
+    newName: string
   ) => {
     if (
       (await isPositionInString(document, position)) ||
@@ -32,12 +35,14 @@ export default class RenameProvider implements vscode.RenameProvider {
 
     const edit = new vscode.WorkspaceEdit();
 
-    const files = await getAllFiles();
+    const files = CssModuleDependencyCache.getDependentsForDocument(document);
 
     // Update all the Javascript Files
     await Promise.all(
       files.map(async (file) => {
-        const doc = await vscode.workspace.openTextDocument(file);
+        const doc = await vscode.workspace.openTextDocument(
+          resolveWorkspaceRelativePath(file)
+        );
         const text = doc.getText();
         const importRegex =
           /import\s+(\w+)\s+from\s+['"](.*?\.module\.(css|scss|less))['"]/g;
@@ -45,7 +50,7 @@ export default class RenameProvider implements vscode.RenameProvider {
 
         while ((match = importRegex.exec(text))) {
           const varName = match[1];
-          const resolvedPath = getResolvedPath(doc, match[2]);
+          const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
 
           if (resolvedPath !== filePath) {
             continue;
@@ -96,7 +101,7 @@ export default class RenameProvider implements vscode.RenameProvider {
     return edit;
   };
 
-  prepareRename = (
+  prepareRename = async (
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
@@ -104,7 +109,14 @@ export default class RenameProvider implements vscode.RenameProvider {
       position,
       /\.[a-zA-Z0-9_-]+/
     );
-    if (wordRange) {
+
+    if (!wordRange) {
+      return;
+    }
+    const className = document.getText(wordRange).replace(/^\./, "");
+    const classNames = await extractClassNames(document.uri.path);
+
+    if (classNames.includes(className)) {
       return new vscode.Range(wordRange.start.translate(0, 1), wordRange.end);
     }
   };
