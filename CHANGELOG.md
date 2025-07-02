@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased] – 2025-07-XX
+## [0.0.5] – 2025-07-02
+
+### Added
+
+- **Reset Cache Command:** Allows users to delete the existing cache and
+  reload all files from the workspace.
+- **Extension Development Tests:** Additional tests added to
+  improve support during extension development.
 
 ## [0.0.4] – 2025-06-27
 
@@ -40,7 +47,7 @@ All notable changes to this project will be documented in this file.
 - Go-to-Definition support for `styles.className` references.
 - Autocompletion of class names in JavaScript and TypeScript.
 
-[unreleased]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.3...HEAD
+[0.0.5]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.3...v0.0.4
 [0.0.3]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.2...v0.0.3
 [0.0.2]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.1...v0.0.2

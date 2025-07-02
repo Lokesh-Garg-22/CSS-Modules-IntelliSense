@@ -47,6 +47,34 @@
   ],
   "main": "./dist/extension.js",
   "contributes": {
+    "commands": [
+      {
+        "command": "css-scss-modules-intellisense.resetCache",
+        "title": "CSS/SCSS Modules IntelliSense: Reset Cache",
+        "shortTitle": "Reloads all the documents inside of the workspace"
+      }
+    ],
+    "configuration": {
+      "title": "CSS Modules Intellisense Extension",
+      "properties": {
+        "cssModulesIntellisense.aliases": {
+          "type": "object",
+          "description": "Define path aliases (like webpack or tsconfig).",
+          "default": {
+            "~": "./src"
+          }
+        },
+        "cssModulesIntellisense.blacklistPatterns": {
+          "type": "array",
+          "description": "Define blacklist Patterns.",
+          "default": [
+            "**/node_modules/**",
+            "**/*.test.ts",
+            "**/*.spec.tsx"
+          ]
+        }
+      }
+    },
     "languages": [
       {
         "id": "typescript",
@@ -153,28 +181,7 @@
         ],
         "configuration": "./configuration/default-language-configuration.json"
       }
-    ],
-    "configuration": {
-      "title": "CSS Modules Intellisense Extension",
-      "properties": {
-        "cssModulesIntellisense.aliases": {
-          "type": "object",
-          "description": "Define path aliases (like webpack or tsconfig).",
-          "default": {
-            "~": "./src"
-          }
-        },
-        "cssModulesIntellisense.blacklistPatterns": {
-          "type": "array",
-          "description": "Define blacklist Patterns.",
-          "default": [
-            "**/node_modules/**",
-            "**/*.test.ts",
-            "**/*.spec.tsx"
-          ]
-        }
-      }
-    }
+    ]
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

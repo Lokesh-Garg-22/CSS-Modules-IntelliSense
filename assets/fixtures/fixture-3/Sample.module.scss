@@ -1,0 +1,9 @@
+.container {
+  background: blue;
+}
+
+.box {
+  .container {
+    background: red;
+  }
+}
