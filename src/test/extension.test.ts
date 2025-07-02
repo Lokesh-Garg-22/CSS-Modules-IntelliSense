@@ -8,4 +8,11 @@ suite("Extension Tests", () => {
     await ext?.activate();
     assert.ok(ext?.isActive);
   });
+
+  test("Run Command Reset Cache", async () => {
+    const result = await vscode.commands.executeCommand(
+      "css-scss-modules-intellisense.resetCache"
+    );
+    assert.equal(result, true);
+  });
 });

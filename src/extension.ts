@@ -11,6 +11,20 @@ export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
     vscode.languages.createDiagnosticCollection("cssModules");
 
+  const resetCacheCommand = vscode.commands.registerCommand(
+    "css-scss-modules-intellisense.resetCache",
+    async () => {
+      try {
+        await CssModuleDependencyCache.populateCacheFromWorkspace();
+        vscode.window.showInformationMessage("Cache has been reset");
+      } catch (e) {
+        vscode.window.showErrorMessage(e as string);
+        return false;
+      }
+      return true;
+    }
+  );
+
   // Completion Provider
   const completionProvider = vscode.languages.registerCompletionItemProvider(
     SUPPORTED_LANGS,
@@ -56,6 +70,7 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(
+    resetCacheCommand,
     completionProvider,
     definitionProvider,
     renameProvider
