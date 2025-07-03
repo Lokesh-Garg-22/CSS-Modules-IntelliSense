@@ -9,7 +9,7 @@
     "url": "https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense.git"
   },
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.93.1"
   },
   "categories": [
     "Programming Languages"
