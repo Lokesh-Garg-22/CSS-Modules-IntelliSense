@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased] – 2025-07-XX
+## [Unreleased] – 2025-07-XX
 
 ### Added
 
-- Added Definition Provider for classes defined in style files
+- Definition Provider for classes defined in style files.
+- Additional tests for the Definition Provider.
 
 ## [0.0.5] – 2025-07-02
 
