@@ -7,6 +7,7 @@ import {
 } from "../utils/getPath";
 import extractClassNames from "../utils/extractClassNames";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
+import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 // TODO only works for the css module files, make a separate one for the script files
 export default class ModulesRenameProvider implements vscode.RenameProvider {
@@ -44,8 +45,10 @@ export default class ModulesRenameProvider implements vscode.RenameProvider {
           resolveWorkspaceRelativePath(file)
         );
         const text = doc.getText();
-        const importRegex =
-          /import\s+(\w+)\s+from\s+['"](.*?\.module\.(css|scss|less))['"]/g;
+        const importRegex = new RegExp(
+          `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
+          "g"
+        );
         let match: RegExpExecArray | null;
 
         while ((match = importRegex.exec(text))) {

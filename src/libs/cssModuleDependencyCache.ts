@@ -8,6 +8,7 @@ import {
 } from "../utils/getPath";
 import getAllFiles from "../utils/getAllFiles";
 import { SUPPORTED_LANGS } from "../config";
+import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 const cacheFile = "cache.json";
 
@@ -142,9 +143,10 @@ export default class CssModuleDependencyCache {
     }
 
     const text = document.getText();
-    const importRegex =
-      /import\s+.*?\s+from\s+['"](.*?\.module\.(css|scss|less))['"]/g;
-
+    const importRegex = new RegExp(
+      `import\\s+[^'"]+\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
+      "g"
+    );
     let match: RegExpExecArray | null;
     while ((match = importRegex.exec(text))) {
       const importPath = match[1];

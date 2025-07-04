@@ -5,6 +5,7 @@ import extractClassNames from "../utils/extractClassNames";
 import { resolveImportPathWithAliases } from "../utils/getPath";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
+import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 const checkDocument = async (
   document: vscode.TextDocument,
@@ -17,8 +18,10 @@ const checkDocument = async (
   const text = document.getText();
   const diagnostics: vscode.Diagnostic[] = [];
 
-  const importRegex =
-    /import\s+(\w+)\s+from\s+['"](.*?\.module\.(css|scss|less))['"]/g;
+  const importRegex = new RegExp(
+    `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
+    "g"
+  );
   let match: RegExpExecArray | null;
   while ((match = importRegex.exec(text))) {
     const varName = match[1];

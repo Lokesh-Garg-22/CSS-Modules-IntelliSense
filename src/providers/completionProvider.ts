@@ -4,6 +4,7 @@ import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import extractClassNames from "../utils/extractClassNames";
 import { resolveImportPathWithAliases } from "../utils/getPath";
+import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
@@ -34,7 +35,7 @@ export default class CompletionItemProvider
 
     const [_, varName] = match;
     const importRegex = new RegExp(
-      `import\\s+${varName}\\s+from\\s+['"](.+\\.module\\.(css|scss|less))['"]`
+      `import\\s+${varName}\\s+from\\s+['"](.+\\.module\\.(${getModuleFileRegex()}))['"]`
     );
     const fullText = document.getText();
     const imp = fullText.match(importRegex);
