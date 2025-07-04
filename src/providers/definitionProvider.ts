@@ -1,14 +1,20 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import { resolveImportPathWithAliases } from "../utils/getPath";
+import {
+  resolveImportPathWithAliases,
+  resolveWorkspaceRelativePath,
+} from "../utils/getPath";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
+import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
+import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
-export default class DefinitionProvider implements vscode.DefinitionProvider {
+export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
   provideDefinition = async (
     document: vscode.TextDocument,
     position: vscode.Position
-  ) => {
+  ): Promise<vscode.LocationLink[] | undefined> => {
+    // Skip strings and comments early
     if (
       (await isPositionInString(document, position)) ||
       (await isPositionInComment(document, position))
@@ -16,45 +22,49 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
       return;
     }
 
-    const wordRange = document.getWordRangeAtPosition(position, /[\w]+/);
+    const wordRange = document.getWordRangeAtPosition(position, /\w+/);
     if (!wordRange) {
       return;
     }
-    const className = document.getText(wordRange);
 
-    // get the variable name before the dot
-    const line = document.lineAt(position).text;
-    const prefix = line.substring(0, wordRange.start.character);
-    const varMatch = prefix.match(/(\w+)\.$/);
+    const className = document.getText(wordRange);
+    const lineText = document.lineAt(position).text;
+
+    // Extract the variable before the dot
+    const prefix = lineText.slice(0, wordRange.start.character);
+    const varMatch = /(\w+)\.$/.exec(prefix);
     if (!varMatch) {
       return;
     }
 
     const varName = varMatch[1];
-    const importRegex = new RegExp(
-      `import\\s+${varName}\\s+from\\s+['"](.+\\.module\\.(css|scss|less))['"]`
-    );
     const fullText = document.getText();
-    const imp = fullText.match(importRegex);
-    if (!imp) {
+
+    // Match imports like: import styles from './file.module.css'
+    const importRegex = new RegExp(
+      `import\\s+${varName}\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`
+    );
+    const importMatch = importRegex.exec(fullText);
+    if (!importMatch) {
       return;
     }
 
-    const cssPath = resolveImportPathWithAliases(document, imp[1]);
+    const cssPath = resolveImportPathWithAliases(document, importMatch[1]);
     if (!fs.existsSync(cssPath)) {
       return;
     }
 
     const cssDoc = await vscode.workspace.openTextDocument(cssPath);
-    const text = cssDoc.getText();
+    const cssText = cssDoc.getText();
 
-    const regex = new RegExp(`\\.${className}\\b`, "g");
     const locations: vscode.LocationLink[] = [];
-    let match: RegExpExecArray | null;
+    const classRegex = new RegExp(`\\.${className}\\b`, "g");
 
-    while ((match = regex.exec(text))) {
+    let match: RegExpExecArray | null;
+    while ((match = classRegex.exec(cssText))) {
       const offset = match.index;
-      const pos = cssDoc.positionAt(offset + 1);
+      const pos = cssDoc.positionAt(offset + 1); // +1 to skip '.'
+
       locations.push({
         originSelectionRange: new vscode.Range(wordRange.start, wordRange.end),
         targetUri: cssDoc.uri,
@@ -69,6 +79,114 @@ export default class DefinitionProvider implements vscode.DefinitionProvider {
       });
     }
 
-    return locations;
+    return locations.length > 0 ? locations : undefined;
+  };
+}
+
+export class StyleDefinitionProvider implements vscode.DefinitionProvider {
+  provideDefinition = async (
+    cssDoc: vscode.TextDocument,
+    position: vscode.Position
+  ): Promise<vscode.LocationLink[] | undefined> => {
+    if (
+      (await isPositionInString(cssDoc, position)) ||
+      (await isPositionInComment(cssDoc, position))
+    ) {
+      return;
+    }
+
+    const wordRange = cssDoc.getWordRangeAtPosition(position, /\.[\w]+/);
+    if (!wordRange) {
+      return;
+    }
+
+    const className = cssDoc.getText(wordRange).slice(1); // remove leading dot
+    const cssPath = resolveImportPathWithAliases(cssDoc, cssDoc.uri.path);
+    if (!fs.existsSync(cssPath)) {
+      return;
+    }
+
+    const locations: vscode.LocationLink[] = [];
+    const cssText = cssDoc.getText();
+    const classRegex = new RegExp(`\\.${className}\\b`, "g");
+
+    // Add definitions in the current CSS module
+    let match: RegExpExecArray | null;
+    while ((match = classRegex.exec(cssText))) {
+      const offset = match.index;
+      const pos = cssDoc.positionAt(offset + 1); // skip '.'
+
+      locations.push({
+        originSelectionRange: new vscode.Range(wordRange.start, wordRange.end),
+        targetUri: cssDoc.uri,
+        targetRange: new vscode.Range(
+          pos.translate(pos.line <= 0 ? 0 : -1, 0),
+          pos.translate(1, 0)
+        ),
+        targetSelectionRange: new vscode.Range(
+          pos,
+          pos.translate(0, className.length)
+        ),
+      });
+    }
+
+    // Add usages from dependent files
+    const dependents =
+      CssModuleDependencyCache.getDependentsForDocument(cssDoc);
+    await Promise.all(
+      dependents.map(async (filePath) => {
+        const doc = await vscode.workspace.openTextDocument(
+          resolveWorkspaceRelativePath(filePath)
+        );
+        const docText = doc.getText();
+
+        const importRegex = new RegExp(
+          `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
+          "g"
+        );
+        let importMatch: RegExpExecArray | null;
+
+        while ((importMatch = importRegex.exec(docText))) {
+          const [_, varName, importPath] = importMatch;
+          const resolvedPath = resolveImportPathWithAliases(doc, importPath);
+          if (resolvedPath !== cssPath) {
+            continue;
+          }
+
+          const usageRegex = new RegExp(`${varName}\\.${className}\\b`, "g");
+          let usageMatch: RegExpExecArray | null;
+
+          while ((usageMatch = usageRegex.exec(docText))) {
+            const index = usageMatch.index + usageMatch[0].indexOf(className);
+            const pos = doc.positionAt(index);
+
+            if (
+              (await isPositionInString(doc, pos)) ||
+              (await isPositionInComment(doc, pos))
+            ) {
+              continue;
+            }
+
+            locations.push({
+              originSelectionRange: new vscode.Range(
+                wordRange.start,
+                wordRange.end
+              ),
+              targetUri: doc.uri,
+              targetRange: new vscode.Range(
+                pos.translate(pos.line <= 0 ? 0 : -1, 0),
+                pos.translate(1, 0)
+              ),
+              targetSelectionRange: new vscode.Range(
+                pos,
+                pos.translate(0, className.length)
+              ),
+            });
+          }
+        }
+      })
+    );
+
+    return locations.length > 0 ? locations : undefined;
   };
 }

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased] – 2025-07-XX
 
+### Added
+
+- Added Definition Provider for classes defined in style files
+
 ## [0.0.5] – 2025-07-02
 
 ### Added

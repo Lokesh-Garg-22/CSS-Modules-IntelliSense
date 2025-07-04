@@ -10,7 +10,7 @@ import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 // TODO only works for the css module files, make a separate one for the script files
-export default class ModulesRenameProvider implements vscode.RenameProvider {
+export class ModulesRenameProvider implements vscode.RenameProvider {
   provideRenameEdits = async (
     document: vscode.TextDocument,
     position: vscode.Position,
