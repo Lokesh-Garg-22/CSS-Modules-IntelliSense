@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
 import { SUPPORTED_LANGS, SUPPORTED_MODULES } from "./config";
-import { ModulesRenameProvider } from "./providers/renameProvider";
+import {
+  ModulesRenameProvider,
+  ScriptsRenameProvider,
+} from "./providers/renameProvider";
 import CompletionItemProvider from "./providers/completionProvider";
 import {
   ScriptDefinitionProvider,
-  StyleDefinitionProvider,
+  ModuleDefinitionProvider as ModuleDefinitionProvider,
 } from "./providers/definitionProvider";
 import checkDocument from "./libs/checkDocument";
 import getAllFiles from "./utils/getAllFiles";
@@ -40,12 +43,16 @@ export function activate(context: vscode.ExtensionContext) {
     SUPPORTED_LANGS,
     new ScriptDefinitionProvider()
   );
-  const styleDefinitionProvider = vscode.languages.registerDefinitionProvider(
+  const moduleDefinitionProvider = vscode.languages.registerDefinitionProvider(
     SUPPORTED_MODULES,
-    new StyleDefinitionProvider()
+    new ModuleDefinitionProvider()
   );
 
   // RenameProvider
+  const scriptsRenameProvider = vscode.languages.registerRenameProvider(
+    SUPPORTED_LANGS,
+    new ScriptsRenameProvider()
+  );
   const modulesRenameProvider = vscode.languages.registerRenameProvider(
     SUPPORTED_MODULES,
     new ModulesRenameProvider()
@@ -79,8 +86,9 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(
     resetCacheCommand,
     completionProvider,
+    moduleDefinitionProvider,
     scriptDefinitionProvider,
-    styleDefinitionProvider,
-    modulesRenameProvider
+    modulesRenameProvider,
+    scriptsRenameProvider
   );
 }

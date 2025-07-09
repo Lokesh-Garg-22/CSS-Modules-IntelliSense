@@ -83,7 +83,7 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
   };
 }
 
-export class StyleDefinitionProvider implements vscode.DefinitionProvider {
+export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
   provideDefinition = async (
     cssDoc: vscode.TextDocument,
     position: vscode.Position
