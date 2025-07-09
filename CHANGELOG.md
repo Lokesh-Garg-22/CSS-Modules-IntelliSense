@@ -6,8 +6,11 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Definition Provider for classes defined in style files.
+- Definition Provider for classes defined in CSS module style files.
 - Additional tests for the Definition Provider.
+- Rename Provider for scripts, allowing you to rename `className`
+  values directly within script files.
+- Tests for the Rename Provider for scripts.
 
 ## [0.0.5] – 2025-07-02
 
