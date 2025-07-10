@@ -5,6 +5,7 @@ import isPositionInComment from "../utils/isPositionInComment";
 import extractClassNames from "../utils/extractClassNames";
 import { resolveImportPathWithAliases } from "../utils/getPath";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
+import { MESSAGES } from "../config";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
@@ -56,7 +57,7 @@ export default class CompletionItemProvider
           name,
           vscode.CompletionItemKind.Variable
         );
-        item.detail = "CSS Module class";
+        item.detail = MESSAGES.COMPLETION.CSS_MODULE_CLASS;
         return item;
       }),
       false

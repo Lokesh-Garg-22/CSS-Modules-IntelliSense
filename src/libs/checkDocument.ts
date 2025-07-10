@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
-import { SUPPORTED_LANGS } from "../config";
+import { MESSAGES, SUPPORTED_LANGS } from "../config";
 import extractClassNames from "../utils/extractClassNames";
 import { resolveImportPathWithAliases } from "../utils/getPath";
 import isPositionInString from "../utils/isPositionInString";
@@ -28,6 +28,18 @@ const checkDocument = async (
     const importPath = match[2];
     const resolvedPath = resolveImportPathWithAliases(document, importPath);
     if (!fs.existsSync(resolvedPath)) {
+      diagnostics.push(
+        new vscode.Diagnostic(
+          new vscode.Range(
+            document.positionAt(match.index + match[0].indexOf(match[2])),
+            document.positionAt(
+              match.index + match[0].indexOf(match[2]) + match[2].length
+            )
+          ),
+          MESSAGES.DIAGNOSTIC.CANNOT_FIND_MODULE(match[2]),
+          vscode.DiagnosticSeverity.Error
+        )
+      );
       continue;
     }
     const definedClasses = await extractClassNames(resolvedPath);
@@ -52,7 +64,7 @@ const checkDocument = async (
         diagnostics.push(
           new vscode.Diagnostic(
             range,
-            `Class "${className}" is not defined in ${importPath}`,
+            MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
             vscode.DiagnosticSeverity.Warning
           )
         );

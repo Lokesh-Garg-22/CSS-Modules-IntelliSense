@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file.
 - Rename Provider for scripts, allowing you to rename `className`
   values directly within script files.
 - Tests for the Rename Provider for scripts.
+- Added error handling for missing module files during import
 
 ## [0.0.5] – 2025-07-02
 
