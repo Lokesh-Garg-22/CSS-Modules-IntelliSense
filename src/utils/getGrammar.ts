@@ -10,6 +10,9 @@ const getGrammar = async (document: vscode.TextDocument) => {
     javascriptreact: "source.js.jsx",
     typescript: "source.ts",
     typescriptreact: "source.tsx",
+    css: "source.css",
+    less: "source.css.less",
+    scss: "source.css.scss",
   }[document.languageId];
 
   if (!scopeName) {

@@ -2,14 +2,14 @@
   "name": "css-scss-modules-intellisense",
   "displayName": "CSS/SCSS Modules IntelliSense",
   "description": "Linter and tooling for CSS Modules with support for SCSS, LESS, Go-to-Definition, and Rename in JS/TS files.",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "publisher": "lokesh-garg",
   "repository": {
     "type": "git",
     "url": "https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense.git"
   },
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.93.1"
   },
   "categories": [
     "Programming Languages"
@@ -28,7 +28,7 @@
     "autocompletion",
     "suggestions",
     "css modules",
-    "stylesheet",
+    "stylesheets",
     "preprocessor",
     "frontend",
     "web development",

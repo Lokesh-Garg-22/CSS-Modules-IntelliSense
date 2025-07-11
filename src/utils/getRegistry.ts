@@ -27,6 +27,9 @@ const getRegistry = async () => {
         "source.js.jsx": "JavaScriptReact.tmLanguage.json",
         "source.ts": "TypeScript.tmLanguage.json",
         "source.tsx": "TypeScriptReact.tmLanguage.json",
+        "source.css": "css.tmLanguage.json",
+        "source.css.less": "less.tmLanguage.json",
+        "source.css.scss": "scss.tmLanguage.json",
       };
       const filename = langMap[scopeName];
       if (!filename) {

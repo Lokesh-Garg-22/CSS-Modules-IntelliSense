@@ -11,5 +11,5 @@
   "cssModulesIntellisense.aliases": {
     "~": "./src"
   },
-  "cSpell.words": ["onig", "vsctm"]
+  "cSpell.words": ["onig", "pcss", "styl", "vsctm"]
 }

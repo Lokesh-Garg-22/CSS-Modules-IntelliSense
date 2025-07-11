@@ -26,3 +26,14 @@ export const SUPPORTED_MODULE_EXTENSIONS = [
   "pcss",
   "postcss",
 ];
+
+export const MESSAGES = {
+  DIAGNOSTIC: {
+    CANNOT_FIND_MODULE: (s: string) => `Cannot find module '${s}'`,
+    CLASS_NOT_DEFINED: (s1: string, s2: string) =>
+      `Class '${s1}' is not defined in ${s2}`,
+  },
+  COMPLETION: {
+    CSS_MODULE_CLASS: "CSS Module class",
+  },
+};
