@@ -1,106 +1,25 @@
-import * as vscode from "vscode";
 import * as fs from "fs";
-import * as path from "path";
+import * as vscode from "vscode";
+import Cache from "./cache";
 import {
   getWorkspaceRelativeImportPath,
   getWorkspaceRelativeUriPath,
   resolveImportPathWithAliases,
 } from "../utils/getPath";
-import getAllFiles from "../utils/getAllFiles";
 import { SUPPORTED_LANGS } from "../config";
+import { getAllScriptFiles } from "../utils/getAllFiles";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
-const cacheFile = "cache.json";
-
 export default class CssModuleDependencyCache {
-  /**
-   * Cache mapping from imported CSS module paths (relative to workspace)
-   * to the set of document paths that import them.
-   */
-  static cache: Map<string, Set<string>> = new Map();
-
-  private static _context: vscode.ExtensionContext;
-  /**
-   * The current extension context.
-   */
-  public static get context(): vscode.ExtensionContext {
-    return CssModuleDependencyCache._context;
-  }
-  public static set context(value: vscode.ExtensionContext) {
-    CssModuleDependencyCache._context = value;
-  }
-
   /**
    * Initializes the cache by loading it from disk and repopulating from workspace files.
    * Should be called once during extension activation.
    */
-  static initialize(context: vscode.ExtensionContext) {
-    this.context = context;
-    const loaded = this.loadCache();
+  static initialize() {
+    const loaded = Cache.loadCache();
     if (!loaded) {
       this.populateCacheFromWorkspace();
     }
-  }
-
-  /**
-   * Saves the current cache to a JSON file in the extension’s storage directory.
-   * Each key is a CSS module file, and the value is a list of documents that import it.
-   */
-  static saveCache() {
-    if (!this.context.storageUri) {
-      return false;
-    }
-
-    const cacheFilePath = path.join(this.context.storageUri.fsPath, cacheFile);
-    const cacheAsObject: Record<string, string[]> = {};
-
-    for (const [key, valueSet] of this.cache.entries()) {
-      cacheAsObject[key] = [...valueSet];
-    }
-
-    try {
-      fs.mkdirSync(this.context.storageUri.fsPath, { recursive: true });
-      fs.writeFileSync(
-        cacheFilePath,
-        JSON.stringify(cacheAsObject, null, 2),
-        "utf-8"
-      );
-    } catch (error) {
-      console.error("Error saving CSS Modules cache:", error);
-      return false;
-    }
-    return true;
-  }
-
-  /**
-   * Loads the cache from a JSON file stored in the extension’s storage directory.
-   * If no file exists or loading fails, the cache remains empty.
-   */
-  static loadCache() {
-    if (!this.context.storageUri) {
-      return false;
-    }
-
-    const cacheFilePath = path.join(this.context.storageUri.fsPath, cacheFile);
-    if (!fs.existsSync(cacheFilePath)) {
-      return false;
-    }
-
-    try {
-      const raw = fs.readFileSync(cacheFilePath, "utf-8");
-      const parsed: Record<string, string[]> = JSON.parse(raw);
-
-      this.cache = new Map(
-        Object.entries(parsed).map(([key, valueArray]) => [
-          key,
-          new Set(valueArray),
-        ])
-      );
-    } catch (error) {
-      console.error("Error loading CSS Modules cache:", error);
-      return false;
-    }
-    return true;
   }
 
   /**
@@ -108,7 +27,7 @@ export default class CssModuleDependencyCache {
    * Uses getAllFiles() to find all source files in the workspace.
    */
   static async populateCacheFromWorkspace() {
-    await getAllFiles().then(
+    await getAllScriptFiles().then(
       async (files) =>
         await Promise.all(
           files.map(async (uri) => {
@@ -117,7 +36,7 @@ export default class CssModuleDependencyCache {
         )
     );
 
-    this.saveCache();
+    Cache.saveCache();
   }
 
   /**
@@ -161,32 +80,36 @@ export default class CssModuleDependencyCache {
       );
       const sourceFile = getWorkspaceRelativeUriPath(document.uri);
 
-      let dependents = this.cache.get(relativeImport);
+      let dependents = Cache.modulePathCache.get(relativeImport);
       if (!dependents) {
         dependents = new Set<string>();
-        this.cache.set(relativeImport, dependents);
+        Cache.modulePathCache.set(relativeImport, dependents);
       }
       dependents.add(sourceFile);
     }
 
-    this.saveCache();
+    Cache.saveCache();
   }
 
   /**
    * Returns all documents that import the given document (by URI).
    * Essentially: reverse lookup of which files depend on this one.
+   * @returns Workspace Relative URLs
    */
   static getDependentsForDocument(document: vscode.TextDocument): string[] {
     return [
-      ...(this.cache.get(getWorkspaceRelativeUriPath(document.uri)) || []),
+      ...(Cache.modulePathCache.get(
+        getWorkspaceRelativeUriPath(document.uri)
+      ) || []),
     ];
   }
 
   /**
    * Returns a flat list of all files that are registered as dependents
    * of any CSS module in the cache.
+   * @returns Workspace Relative URLs
    */
   static getAllDependentDocuments(): string[] {
-    return [...this.cache.values()].flatMap((data) => [...data]);
+    return [...Cache.modulePathCache.values()].flatMap((data) => [...data]);
   }
 }

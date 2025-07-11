@@ -1,12 +1,13 @@
 import * as vscode from "vscode";
 import * as fs from "fs";
+import ClassNameCache from "../libs/classNameCache";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import {
+  getWorkspaceRelativeImportPath,
   resolveImportPathWithAliases,
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
-import extractClassNames from "../utils/extractClassNames";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
@@ -149,13 +150,10 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
       return;
     }
 
-    const cssPath = resolveImportPathWithAliases(document, importMatch[1]);
-    if (!fs.existsSync(cssPath)) {
-      return;
-    }
-
-    const classNames = await extractClassNames(cssPath);
-    return classNames.includes(className) ? wordRange : undefined;
+    const classNames = await ClassNameCache.getClassNamesFromImportPath(
+      getWorkspaceRelativeImportPath(document, importMatch[1])
+    );
+    return classNames && classNames.includes(className) ? wordRange : undefined;
   };
 }
 
@@ -266,9 +264,9 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
       return;
     }
     const className = document.getText(wordRange).replace(/^\./, "");
-    const classNames = await extractClassNames(document.uri.path);
+    const classNames = await ClassNameCache.getClassNames({ document });
 
-    if (classNames.includes(className)) {
+    if (classNames && classNames.includes(className)) {
       return new vscode.Range(wordRange.start.translate(0, 1), wordRange.end);
     }
   };

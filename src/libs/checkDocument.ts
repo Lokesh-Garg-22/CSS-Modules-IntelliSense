@@ -1,12 +1,33 @@
-import * as vscode from "vscode";
 import * as fs from "fs";
+import * as vscode from "vscode";
 import { MESSAGES, SUPPORTED_LANGS } from "../config";
-import extractClassNames from "../utils/extractClassNames";
-import { resolveImportPathWithAliases } from "../utils/getPath";
+import ClassNameCache from "./classNameCache";
+import {
+  getWorkspaceRelativeImportPath,
+  resolveImportPathWithAliases,
+} from "../utils/getPath";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
+/**
+ * Analyzes a given script document to validate usage of CSS Modules.
+ *
+ * - Checks for valid imports of `.module.css` (and supported extensions).
+ * - Verifies that imported class names exist in the corresponding CSS module file.
+ * - Skips usages inside strings or comments.
+ * - Reports missing imports or undefined class names as diagnostics.
+ *
+ * @param document - The currently open text document to analyze.
+ * @param diagnosticCollection - The diagnostic collection used to report errors and warnings.
+ *
+ * @returns A promise that resolves when the analysis is complete.
+ *
+ * @example
+ * vscode.workspace.onDidSaveTextDocument((doc) => {
+ *   checkDocument(doc, myDiagnosticCollection);
+ * });
+ */
 const checkDocument = async (
   document: vscode.TextDocument,
   diagnosticCollection: vscode.DiagnosticCollection
@@ -42,14 +63,16 @@ const checkDocument = async (
       );
       continue;
     }
-    const definedClasses = await extractClassNames(resolvedPath);
+    const definedClasses = await ClassNameCache.getClassNamesFromImportPath(
+      getWorkspaceRelativeImportPath(document, importPath)
+    );
 
     const usageRegex = new RegExp(`${varName}\\.([a-zA-Z0-9_]+)`, "g");
     let usageMatch: RegExpExecArray | null;
     while ((usageMatch = usageRegex.exec(text))) {
       const fullMatch = usageMatch[0];
       const className = usageMatch[1];
-      const index = usageMatch.index + fullMatch.indexOf(className);
+      const index = usageMatch.index + varName.length + 1;
       const pos = document.positionAt(index);
 
       if (
@@ -59,7 +82,7 @@ const checkDocument = async (
         continue;
       }
 
-      if (!definedClasses.includes(className)) {
+      if (definedClasses && !definedClasses.includes(className)) {
         const range = new vscode.Range(pos, pos.translate(0, className.length));
         diagnostics.push(
           new vscode.Diagnostic(

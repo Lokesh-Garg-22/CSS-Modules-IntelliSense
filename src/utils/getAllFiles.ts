@@ -1,10 +1,13 @@
 import * as vscode from "vscode";
-import { getScriptFileRegex } from "./getFileExtensionRegex";
+import {
+  getModuleFileRegex,
+  getScriptFileRegex,
+} from "./getFileExtensionRegex";
 
 const config = vscode.workspace.getConfiguration("cssModulesIntellisense");
 const blacklistPatterns = config.get<string[]>("blacklistPatterns", []);
 
-const getAllFiles = async () => {
+export const getAllScriptFiles = async () => {
   const includePattern = `**/*.{${getScriptFileRegex()}}`;
 
   const excludePattern = `{${blacklistPatterns.join(",")}}`;
@@ -17,4 +20,15 @@ const getAllFiles = async () => {
   return files;
 };
 
-export default getAllFiles;
+export const getAllModuleFiles = async () => {
+  const includePattern = `**/*.{${getModuleFileRegex()}}`;
+
+  const excludePattern = `{${blacklistPatterns.join(",")}}`;
+
+  const files = await vscode.workspace.findFiles(
+    includePattern,
+    excludePattern
+  );
+
+  return files;
+};

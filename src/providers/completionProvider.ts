@@ -1,11 +1,10 @@
 import * as vscode from "vscode";
-import * as fs from "fs";
+import { MESSAGES } from "../config";
+import ClassNameCache from "../libs/classNameCache";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
-import extractClassNames from "../utils/extractClassNames";
-import { resolveImportPathWithAliases } from "../utils/getPath";
+import { getWorkspaceRelativeImportPath } from "../utils/getPath";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
-import { MESSAGES } from "../config";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
@@ -39,18 +38,17 @@ export default class CompletionItemProvider
       `import\\s+${varName}\\s+from\\s+['"](.+\\.module\\.(${getModuleFileRegex()}))['"]`
     );
     const fullText = document.getText();
-    const imp = fullText.match(importRegex);
-    if (!imp) {
+    const importMatch = fullText.match(importRegex);
+    if (!importMatch) {
       return;
     }
 
-    const resolvedPath = resolveImportPathWithAliases(document, imp[1]);
-
-    if (!fs.existsSync(resolvedPath)) {
+    const classNames = await ClassNameCache.getClassNamesFromImportPath(
+      getWorkspaceRelativeImportPath(document, importMatch[1])
+    );
+    if (!classNames) {
       return;
     }
-
-    const classNames = await extractClassNames(resolvedPath);
     return new vscode.CompletionList(
       classNames.map((name) => {
         const item = new vscode.CompletionItem(

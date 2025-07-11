@@ -6,12 +6,16 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- Definition Provider for classes defined in CSS module style files.
-- Additional tests for the Definition Provider.
-- Rename Provider for scripts, allowing you to rename `className`
-  values directly within script files.
-- Tests for the Rename Provider for scripts.
-- Added error handling for missing module files during import
+- **Definition Provider**: Jump to definitions of class names in CSS module files.
+- **Rename Provider**: Enables in-place renaming of `className` usages within scripts.
+- **Caching**: Class names from module files are now cached to improve performance.
+- **Error Handling**: Improved error reporting for missing module files during import.
+- **Tests**: Added more unit tests for both the Definition and Rename Providers.
+
+### Fixed
+
+- **Comment Ignorance**: Class names inside comments were incorrectly
+  considered valid — they are now ignored properly.
 
 ## [0.0.5] – 2025-07-02
 

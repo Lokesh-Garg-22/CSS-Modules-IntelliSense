@@ -9,19 +9,42 @@ import {
   ScriptDefinitionProvider,
   ModuleDefinitionProvider as ModuleDefinitionProvider,
 } from "./providers/definitionProvider";
+import Cache from "./libs/cache";
+import loadCaches from "./libs/loadCaches";
 import checkDocument from "./libs/checkDocument";
-import getAllFiles from "./utils/getAllFiles";
+import ClassNameCache from "./libs/classNameCache";
+import { getAllScriptFiles } from "./utils/getAllFiles";
 import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
 
 export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
     vscode.languages.createDiagnosticCollection("cssModules");
 
+  Cache.context = context;
+  loadCaches(diagnosticCollection);
+
+  vscode.workspace.onDidOpenTextDocument((document) =>
+    checkDocument(document, diagnosticCollection)
+  );
+  vscode.workspace.onDidChangeTextDocument((e) =>
+    checkDocument(e.document, diagnosticCollection)
+  );
+  getAllScriptFiles().then((files) =>
+    files.forEach(async (uri) =>
+      checkDocument(
+        await vscode.workspace.openTextDocument(uri),
+        diagnosticCollection
+      )
+    )
+  );
+
+  // Commands
   const resetCacheCommand = vscode.commands.registerCommand(
     "css-scss-modules-intellisense.resetCache",
     async () => {
       try {
         await CssModuleDependencyCache.populateCacheFromWorkspace();
+        await ClassNameCache.populateCacheFromWorkspace();
         vscode.window.showInformationMessage("Cache has been reset");
       } catch (e) {
         vscode.window.showErrorMessage(e as string);
@@ -56,31 +79,6 @@ export function activate(context: vscode.ExtensionContext) {
   const modulesRenameProvider = vscode.languages.registerRenameProvider(
     SUPPORTED_MODULES,
     new ModulesRenameProvider()
-  );
-
-  vscode.workspace.onDidOpenTextDocument((document) =>
-    checkDocument(document, diagnosticCollection)
-  );
-  vscode.workspace.onDidChangeTextDocument((e) =>
-    checkDocument(e.document, diagnosticCollection)
-  );
-  getAllFiles().then((files) =>
-    files.forEach(async (uri) =>
-      checkDocument(
-        await vscode.workspace.openTextDocument(uri),
-        diagnosticCollection
-      )
-    )
-  );
-
-  CssModuleDependencyCache.initialize(context);
-  vscode.workspace.onDidCreateFiles((e) => {
-    e.files.forEach((uri) =>
-      CssModuleDependencyCache.updateCacheForDocument({ uri })
-    );
-  });
-  vscode.workspace.onDidChangeTextDocument((e) =>
-    CssModuleDependencyCache.updateCacheForDocument({ document: e.document })
   );
 
   context.subscriptions.push(
