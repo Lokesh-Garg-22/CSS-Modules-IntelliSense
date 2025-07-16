@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] – 2025-07-XX
+
 ## [0.1.1] – 2025-07-16
 
 ### Changed
@@ -69,6 +71,7 @@ All notable changes to this project will be documented in this file.
 - Go-to-Definition support for `styles.className` references.
 - Autocompletion of class names in JavaScript and TypeScript.
 
+[unreleased]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.0...HEAD
 [0.1.1]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.4...v0.0.5
