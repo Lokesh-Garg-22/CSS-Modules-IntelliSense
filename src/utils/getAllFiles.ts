@@ -21,7 +21,7 @@ export const getAllScriptFiles = async () => {
 };
 
 export const getAllModuleFiles = async () => {
-  const includePattern = `**/*.{${getModuleFileRegex()}}`;
+  const includePattern = `**/*.module.{${getModuleFileRegex(",")}}`;
 
   const excludePattern = `{${blacklistPatterns.join(",")}}`;
 

@@ -206,6 +206,7 @@
     "vsce": "^2.15.0"
   },
   "dependencies": {
+    "lru-cache": "^11.1.0",
     "postcss": "^8.5.5",
     "postcss-safe-parser": "^7.0.1",
     "vscode-oniguruma": "^2.0.1",

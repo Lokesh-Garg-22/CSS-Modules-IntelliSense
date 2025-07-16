@@ -11,46 +11,54 @@ import {
 } from "./providers/definitionProvider";
 import Cache from "./libs/cache";
 import loadCaches from "./libs/loadCaches";
-import checkDocument from "./libs/checkDocument";
-import ClassNameCache from "./libs/classNameCache";
-import { getAllScriptFiles } from "./utils/getAllFiles";
+import CheckDocument from "./libs/checkDocument";
 import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
 
 export function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
     vscode.languages.createDiagnosticCollection("cssModules");
+  CheckDocument.diagnosticCollection = diagnosticCollection;
 
   Cache.context = context;
-  loadCaches(diagnosticCollection);
+  Cache.loadCache();
+  loadCaches();
 
+  vscode.workspace.textDocuments.forEach(async (file) =>
+    CheckDocument.push(await vscode.workspace.openTextDocument(file.uri))
+  );
   vscode.workspace.onDidOpenTextDocument((document) =>
-    checkDocument(document, diagnosticCollection)
+    CheckDocument.push(document)
   );
   vscode.workspace.onDidChangeTextDocument((e) =>
-    checkDocument(e.document, diagnosticCollection)
-  );
-  getAllScriptFiles().then((files) =>
-    files.forEach(async (uri) =>
-      checkDocument(
-        await vscode.workspace.openTextDocument(uri),
-        diagnosticCollection
-      )
-    )
+    CheckDocument.push(e.document)
   );
 
   // Commands
   const resetCacheCommand = vscode.commands.registerCommand(
     "css-scss-modules-intellisense.resetCache",
     async () => {
-      try {
-        await CssModuleDependencyCache.populateCacheFromWorkspace();
-        await ClassNameCache.populateCacheFromWorkspace();
-        vscode.window.showInformationMessage("Cache has been reset");
-      } catch (e) {
-        vscode.window.showErrorMessage(e as string);
-        return false;
-      }
-      return true;
+      return vscode.window.withProgress(
+        {
+          location: vscode.ProgressLocation.Window,
+          title: "Resetting CSS Modules Cache...",
+        },
+        async () => {
+          try {
+            await Cache.clearCache();
+            await CssModuleDependencyCache.populateCacheFromWorkspace();
+
+            vscode.window.showInformationMessage("Cache has been reset");
+            return true;
+          } catch (e) {
+            if (e instanceof vscode.CancellationError) {
+              vscode.window.showWarningMessage("Cache reset was cancelled.");
+            } else {
+              vscode.window.showErrorMessage(`Cache reset failed: ${e}`);
+            }
+            return false;
+          }
+        }
+      );
     }
   );
 

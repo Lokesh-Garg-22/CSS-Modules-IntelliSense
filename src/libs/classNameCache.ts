@@ -15,26 +15,6 @@ import isPositionInComment from "../utils/isPositionInComment";
  */
 export default class ClassNameCache {
   /**
-   * Initializes the class name cache by loading from disk or scanning workspace files.
-   */
-  static initialize() {
-    const loaded = Cache.loadCache();
-    if (!loaded) {
-      this.populateCacheFromWorkspace();
-    }
-  }
-
-  /**
-   * Scans all CSS Module files in the workspace and populates the class name cache.
-   */
-  static async populateCacheFromWorkspace() {
-    const files = await getAllModuleFiles();
-    await Promise.all(files.map((uri) => this.extractFromUri(uri)));
-
-    Cache.saveCache();
-  }
-
-  /**
    * Retrieves class names from the given document or URI, checking the cache first.
    * @param param0 Object containing a `vscode.TextDocument` or `vscode.Uri`.
    * @returns An array of class names, or undefined if invalid or not found.
@@ -65,8 +45,8 @@ export default class ClassNameCache {
   static async getClassNamesFromImportPath(
     importPath: string
   ): Promise<string[] | undefined> {
-    if (Cache.classNameCache.has(importPath)) {
-      return [...(Cache.classNameCache.get(importPath) || [])];
+    if (Cache.classNameCache.hasByKey(importPath)) {
+      return [...(Cache.classNameCache.getByKey(importPath) || [])];
     } else {
       return await this.extractAndCacheClassNames(importPath);
     }
@@ -91,7 +71,7 @@ export default class ClassNameCache {
   ): Promise<string[] | undefined> {
     const filePath = resolveWorkspaceRelativePath(importPath);
     if (!fs.existsSync(filePath)) {
-      Cache.classNameCache.delete(importPath); // Clean up stale entries
+      Cache.classNameCache.deleteByKey(importPath); // Clean up stale entries
       return;
     }
 
@@ -129,7 +109,7 @@ export default class ClassNameCache {
 
     await Promise.all(walkPromises);
 
-    Cache.classNameCache.set(importPath, classNames);
+    Cache.classNameCache.setByKey(importPath, classNames);
     Cache.saveCache();
     return Array.from(classNames);
   }

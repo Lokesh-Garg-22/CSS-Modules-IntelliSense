@@ -12,17 +12,6 @@ import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 export default class CssModuleDependencyCache {
   /**
-   * Initializes the cache by loading it from disk and repopulating from workspace files.
-   * Should be called once during extension activation.
-   */
-  static initialize() {
-    const loaded = Cache.loadCache();
-    if (!loaded) {
-      this.populateCacheFromWorkspace();
-    }
-  }
-
-  /**
    * Scans all workspace files and populates the cache with CSS module imports.
    * Uses getAllFiles() to find all source files in the workspace.
    */
@@ -31,7 +20,7 @@ export default class CssModuleDependencyCache {
       async (files) =>
         await Promise.all(
           files.map(async (uri) => {
-            this.updateCacheForDocument({ uri });
+            await this.updateCacheForDocument({ uri });
           })
         )
     );
@@ -80,12 +69,11 @@ export default class CssModuleDependencyCache {
       );
       const sourceFile = getWorkspaceRelativeUriPath(document.uri);
 
-      let dependents = Cache.modulePathCache.get(relativeImport);
+      let dependents = Cache.modulePathCache.getByKey(relativeImport);
       if (!dependents) {
-        dependents = new Set<string>();
-        Cache.modulePathCache.set(relativeImport, dependents);
+        dependents = Cache.modulePathCache.createKey(relativeImport);
       }
-      dependents.add(sourceFile);
+      dependents.addByKey(sourceFile);
     }
 
     Cache.saveCache();
@@ -97,11 +85,11 @@ export default class CssModuleDependencyCache {
    * @returns Workspace Relative URLs
    */
   static getDependentsForDocument(document: vscode.TextDocument): string[] {
-    return [
-      ...(Cache.modulePathCache.get(
-        getWorkspaceRelativeUriPath(document.uri)
-      ) || []),
-    ];
+    return (
+      Cache.modulePathCache
+        .getByKey(getWorkspaceRelativeUriPath(document.uri))
+        ?.toKeyArray() || []
+    );
   }
 
   /**
@@ -110,6 +98,8 @@ export default class CssModuleDependencyCache {
    * @returns Workspace Relative URLs
    */
   static getAllDependentDocuments(): string[] {
-    return [...Cache.modulePathCache.values()].flatMap((data) => [...data]);
+    return [...Cache.modulePathCache.values()].flatMap((data) =>
+      data.toKeyArray()
+    );
   }
 }

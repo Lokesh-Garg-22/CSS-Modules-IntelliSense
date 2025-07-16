@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased] – 2025-07-XX
+
+### Changed
+
+- The `resetCache` command now processes files in series instead of in parallel,
+  resolving issues caused by simultaneous parsing.
+
 ## [0.1.0] – 2025-07-11
 
 ### Added
@@ -62,6 +69,7 @@ All notable changes to this project will be documented in this file.
 - Go-to-Definition support for `styles.className` references.
 - Autocompletion of class names in JavaScript and TypeScript.
 
+[unreleased]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.4...v0.0.5
 [0.0.4]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.3...v0.0.4

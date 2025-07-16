@@ -37,3 +37,8 @@ export const MESSAGES = {
     CSS_MODULE_CLASS: "CSS Module class",
   },
 };
+
+export const DEBOUNCE_TIMER = {
+  CACHE: 1000,
+  CHECK_DOCUMENT: 1,
+};

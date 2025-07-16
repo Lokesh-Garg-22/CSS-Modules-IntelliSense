@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
-import { MESSAGES, SUPPORTED_LANGS } from "../config";
+import { DEBOUNCE_TIMER, MESSAGES, SUPPORTED_LANGS } from "../config";
 import ClassNameCache from "./classNameCache";
 import {
   getWorkspaceRelativeImportPath,
@@ -11,91 +11,201 @@ import isPositionInComment from "../utils/isPositionInComment";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
 /**
- * Analyzes a given script document to validate usage of CSS Modules.
+ * Class responsible for analyzing script documents to validate usage of CSS Modules.
  *
- * - Checks for valid imports of `.module.css` (and supported extensions).
- * - Verifies that imported class names exist in the corresponding CSS module file.
- * - Skips usages inside strings or comments.
- * - Reports missing imports or undefined class names as diagnostics.
- *
- * @param document - The currently open text document to analyze.
- * @param diagnosticCollection - The diagnostic collection used to report errors and warnings.
- *
- * @returns A promise that resolves when the analysis is complete.
+ * This class:
+ * - Detects valid imports of `.module.css` (or supported extensions).
+ * - Verifies class names used in code are defined in the corresponding CSS Module.
+ * - Skips analysis within comments or strings.
+ * - Collects and pushes diagnostics to VSCode's problems panel.
  *
  * @example
- * vscode.workspace.onDidSaveTextDocument((doc) => {
- *   checkDocument(doc, myDiagnosticCollection);
- * });
+ * CheckDocument.diagnosticCollection = myDiagnosticCollection;
+ * CheckDocument.push(doc);
  */
-const checkDocument = async (
-  document: vscode.TextDocument,
-  diagnosticCollection: vscode.DiagnosticCollection
-) => {
-  if (!SUPPORTED_LANGS.includes(document.languageId)) {
-    return;
+export default class CheckDocument {
+  private static _diagnosticCollection: vscode.DiagnosticCollection;
+
+  /**
+   * Collection used to store and report diagnostics.
+   */
+  public static get diagnosticCollection(): vscode.DiagnosticCollection {
+    return this._diagnosticCollection;
   }
 
-  const text = document.getText();
-  const diagnostics: vscode.Diagnostic[] = [];
+  public static set diagnosticCollection(value: vscode.DiagnosticCollection) {
+    this._diagnosticCollection = value;
+  }
 
-  const importRegex = new RegExp(
-    `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-    "g"
-  );
-  let match: RegExpExecArray | null;
-  while ((match = importRegex.exec(text))) {
-    const varName = match[1];
-    const importPath = match[2];
-    const resolvedPath = resolveImportPathWithAliases(document, importPath);
-    if (!fs.existsSync(resolvedPath)) {
-      diagnostics.push(
-        new vscode.Diagnostic(
-          new vscode.Range(
-            document.positionAt(match.index + match[0].indexOf(match[2])),
-            document.positionAt(
-              match.index + match[0].indexOf(match[2]) + match[2].length
-            )
-          ),
-          MESSAGES.DIAGNOSTIC.CANNOT_FIND_MODULE(match[2]),
-          vscode.DiagnosticSeverity.Error
-        )
-      );
-      continue;
+  /**
+   * Timer ID used for debounced document checking.
+   */
+  protected static debounceTimerId: NodeJS.Timeout;
+
+  /**
+   * Queue of documents pending analysis.
+   */
+  protected static documentQueue: Array<vscode.TextDocument> = [];
+
+  /**
+   * Adds a document to the check queue and starts the analysis if idle.
+   *
+   * @param document - The text document to analyze.
+   * @returns The new queue length.
+   */
+  static push(document: vscode.TextDocument): number {
+    if (this.isQueueEmpty()) {
+      const length = this.documentQueue.push(document);
+      this.checkNextDocument();
+      return length;
     }
-    const definedClasses = await ClassNameCache.getClassNamesFromImportPath(
-      getWorkspaceRelativeImportPath(document, importPath)
+    return this.documentQueue.push(document);
+  }
+
+  /**
+   * Removes the last document from the queue.
+   */
+  static pop(): vscode.TextDocument | undefined {
+    return this.documentQueue.pop();
+  }
+
+  /**
+   * Returns the next document to be analyzed without removing it from the queue.
+   */
+  static peek(): vscode.TextDocument | undefined {
+    if (this.documentQueue.length <= 0) {
+      return;
+    }
+    return this.documentQueue[this.documentQueue.length - 1];
+  }
+
+  /**
+   * Returns whether the document queue is empty.
+   */
+  static isQueueEmpty(): boolean {
+    return this.documentQueue.length <= 0;
+  }
+
+  /**
+   * Clears the entire document queue.
+   */
+  static clear(): typeof CheckDocument {
+    while (this.documentQueue.length) {
+      this.pop();
+    }
+    return this;
+  }
+
+  /**
+   * Sets a debounce timer to delay document analysis.
+   */
+  static setDebounceTimer(): void {
+    clearTimeout(this.debounceTimerId);
+    this.debounceTimerId = setTimeout(() => {
+      this.checkNextDocument();
+    }, DEBOUNCE_TIMER.CHECK_DOCUMENT);
+  }
+
+  /**
+   * Checks the next document in the queue.
+   */
+  static async checkNextDocument(): Promise<void> {
+    const document = this.peek();
+    if (document) {
+      await this.analyzeDocument(document);
+      this.pop();
+      this.setDebounceTimer();
+    }
+  }
+
+  /**
+   * Analyzes the given document for correct CSS Module usage.
+   *
+   * @param document - The text document to analyze.
+   */
+  private static async analyzeDocument(
+    document: vscode.TextDocument
+  ): Promise<void> {
+    if (!SUPPORTED_LANGS.includes(document.languageId)) {
+      return;
+    }
+
+    const text = document.getText();
+    const diagnostics: vscode.Diagnostic[] = [];
+
+    const importRegex = new RegExp(
+      `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
+      "g"
     );
 
-    const usageRegex = new RegExp(`${varName}\\.([a-zA-Z0-9_]+)`, "g");
-    let usageMatch: RegExpExecArray | null;
-    while ((usageMatch = usageRegex.exec(text))) {
-      const fullMatch = usageMatch[0];
-      const className = usageMatch[1];
-      const index = usageMatch.index + varName.length + 1;
-      const pos = document.positionAt(index);
+    let importMatch: RegExpExecArray | null;
+    while ((importMatch = importRegex.exec(text))) {
+      const [_, importVar, importPath] = importMatch;
 
+      const startPos = document.positionAt(importMatch.index);
       if (
-        (await isPositionInString(document, pos)) ||
-        (await isPositionInComment(document, pos))
+        (await isPositionInComment(document, startPos)) ||
+        (await isPositionInString(document, startPos))
       ) {
         continue;
       }
 
-      if (definedClasses && !definedClasses.includes(className)) {
-        const range = new vscode.Range(pos, pos.translate(0, className.length));
+      const resolvedPath = resolveImportPathWithAliases(document, importPath);
+      if (!fs.existsSync(resolvedPath)) {
         diagnostics.push(
           new vscode.Diagnostic(
-            range,
-            MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
-            vscode.DiagnosticSeverity.Warning
+            new vscode.Range(
+              document.positionAt(
+                importMatch.index + importMatch[0].indexOf(importPath)
+              ),
+              document.positionAt(
+                importMatch.index +
+                  importMatch[0].indexOf(importPath) +
+                  importPath.length
+              )
+            ),
+            MESSAGES.DIAGNOSTIC.CANNOT_FIND_MODULE(importPath),
+            vscode.DiagnosticSeverity.Error
           )
         );
+        continue;
+      }
+
+      const definedClassNames =
+        await ClassNameCache.getClassNamesFromImportPath(
+          getWorkspaceRelativeImportPath(document, importPath)
+        );
+
+      const usageRegex = new RegExp(`${importVar}\\.([a-zA-Z0-9_]+)`, "g");
+      let usageMatch: RegExpExecArray | null;
+      while ((usageMatch = usageRegex.exec(text))) {
+        const className = usageMatch[1];
+        const classStartIndex = usageMatch.index + importVar.length + 1;
+        const classPos = document.positionAt(classStartIndex);
+
+        if (
+          (await isPositionInString(document, classPos)) ||
+          (await isPositionInComment(document, classPos))
+        ) {
+          continue;
+        }
+
+        if (!definedClassNames?.includes(className)) {
+          const range = new vscode.Range(
+            classPos,
+            classPos.translate(0, className.length)
+          );
+          diagnostics.push(
+            new vscode.Diagnostic(
+              range,
+              MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
+              vscode.DiagnosticSeverity.Warning
+            )
+          );
+        }
       }
     }
+
+    this.diagnosticCollection.set(document.uri, diagnostics);
   }
-
-  diagnosticCollection.set(document.uri, diagnostics);
-};
-
-export default checkDocument;
+}
