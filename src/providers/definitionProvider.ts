@@ -69,7 +69,9 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
         originSelectionRange: new vscode.Range(wordRange.start, wordRange.end),
         targetUri: cssDoc.uri,
         targetRange: new vscode.Range(
-          pos.translate(pos.line <= 0 ? 0 : -1, 0),
+          pos.line <= 0
+            ? pos.translate(0, -pos.character)
+            : pos.translate(-1, 0),
           pos.translate(1, 0)
         ),
         targetSelectionRange: new vscode.Range(
@@ -120,7 +122,9 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
         originSelectionRange: new vscode.Range(wordRange.start, wordRange.end),
         targetUri: cssDoc.uri,
         targetRange: new vscode.Range(
-          pos.translate(pos.line <= 0 ? 0 : -1, 0),
+          pos.line <= 0
+            ? pos.translate(0, -pos.character)
+            : pos.translate(-1, 0),
           pos.translate(1, 0)
         ),
         targetSelectionRange: new vscode.Range(
@@ -174,7 +178,9 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
               ),
               targetUri: doc.uri,
               targetRange: new vscode.Range(
-                pos.translate(pos.line <= 0 ? 0 : -1, 0),
+                pos.line <= 0
+                  ? pos.translate(0, -pos.character)
+                  : pos.translate(-1, 0),
                 pos.translate(1, 0)
               ),
               targetSelectionRange: new vscode.Range(

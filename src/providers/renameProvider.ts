@@ -11,6 +11,85 @@ import {
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 
+const provideRenameEdits = async ({
+  document,
+  oldClassName,
+  newName,
+}: {
+  document: vscode.TextDocument;
+  oldClassName: string;
+  newName: string;
+}) => {
+  const filePath = document.uri.fsPath;
+
+  const edit = new vscode.WorkspaceEdit();
+
+  const files = CssModuleDependencyCache.getDependentsForDocument(document);
+
+  // Update all the Javascript Files
+  await Promise.all(
+    files.map(async (file) => {
+      const doc = await vscode.workspace.openTextDocument(
+        resolveWorkspaceRelativePath(file)
+      );
+      const text = doc.getText();
+      const importRegex = new RegExp(
+        `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
+        "g"
+      );
+      let match: RegExpExecArray | null;
+
+      while ((match = importRegex.exec(text))) {
+        const varName = match[1];
+        const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
+
+        if (resolvedPath !== filePath) {
+          continue;
+        }
+
+        const usageRegex = new RegExp(`${varName}\\.${oldClassName}\\b`, "g");
+        let usageMatch: RegExpExecArray | null;
+
+        while ((usageMatch = usageRegex.exec(text))) {
+          const index = usageMatch.index + usageMatch[0].indexOf(oldClassName);
+          const pos = doc.positionAt(index);
+
+          if (
+            (await isPositionInString(doc, pos)) ||
+            (await isPositionInComment(doc, pos))
+          ) {
+            continue;
+          }
+
+          const usageRange = new vscode.Range(
+            pos,
+            pos.translate(0, oldClassName.length)
+          );
+
+          edit.replace(doc.uri, usageRange, newName);
+        }
+      }
+    })
+  );
+
+  // Update the Css Module File
+  const classNameData = await ClassNameCache.getClassNameData({
+    className: oldClassName,
+    document,
+  });
+  if (classNameData) {
+    classNameData.forEach((data) => {
+      edit.replace(
+        document.uri,
+        new vscode.Range(data.range.start.translate(0, 1), data.range.end),
+        newName
+      );
+    });
+  }
+
+  return edit;
+};
+
 export class ScriptsRenameProvider implements vscode.RenameProvider {
   provideRenameEdits = async (
     document: vscode.TextDocument,
@@ -53,72 +132,12 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     }
 
     const cssDoc = await vscode.workspace.openTextDocument(cssFilePath);
-    const edit = new vscode.WorkspaceEdit();
-    const dependentFiles =
-      CssModuleDependencyCache.getDependentsForDocument(cssDoc);
 
-    // Update all dependent JavaScript/TypeScript files
-    await Promise.all(
-      dependentFiles.map(async (file) => {
-        const doc = await vscode.workspace.openTextDocument(
-          resolveWorkspaceRelativePath(file)
-        );
-        const text = doc.getText();
-        const importRegex = new RegExp(
-          `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-          "g"
-        );
-        const matches = [...text.matchAll(importRegex)];
-
-        for (const match of matches) {
-          const localVar = match[1];
-          const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
-          if (resolvedPath !== cssFilePath) {
-            continue;
-          }
-
-          const usageRegex = new RegExp(
-            `${localVar}\\.${oldClassName}\\b`,
-            "g"
-          );
-          for (const usageMatch of text.matchAll(usageRegex)) {
-            const index =
-              usageMatch.index! + usageMatch[0].indexOf(oldClassName);
-            const pos = doc.positionAt(index);
-
-            if (
-              (await isPositionInString(doc, pos)) ||
-              (await isPositionInComment(doc, pos))
-            ) {
-              continue;
-            }
-
-            const usageRange = new vscode.Range(
-              pos,
-              pos.translate(0, oldClassName.length)
-            );
-
-            edit.replace(doc.uri, usageRange, newName);
-          }
-        }
-      })
-    );
-
-    // Update the Css Module File
-    const cssText = cssDoc.getText();
-    const classNameRegex = new RegExp(`\\.${oldClassName}\\b`, "g");
-    for (const match of cssText.matchAll(classNameRegex)) {
-      const offset = match.index;
-      const pos = cssDoc.positionAt(offset + 1); // +1 to skip the `.`
-      const usageRange = new vscode.Range(
-        pos,
-        pos.translate(0, oldClassName.length)
-      );
-
-      edit.replace(cssDoc.uri, usageRange, newName);
-    }
-
-    return edit;
+    return await provideRenameEdits({
+      document: cssDoc,
+      oldClassName,
+      newName,
+    });
   };
 
   prepareRename = async (
@@ -150,10 +169,12 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
       return;
     }
 
-    const classNames = await ClassNameCache.getClassNamesFromImportPath(
+    return (await ClassNameCache.hasClassNameFromImportPath(
+      className,
       getWorkspaceRelativeImportPath(document, importMatch[1])
-    );
-    return classNames && classNames.includes(className) ? wordRange : undefined;
+    ))
+      ? wordRange
+      : undefined;
   };
 }
 
@@ -179,76 +200,8 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
     }
 
     const oldClassName = document.getText(wordRange).replace(/^\./, "");
-    const filePath = document.uri.fsPath;
 
-    const edit = new vscode.WorkspaceEdit();
-
-    const files = CssModuleDependencyCache.getDependentsForDocument(document);
-
-    // Update all the Javascript Files
-    await Promise.all(
-      files.map(async (file) => {
-        const doc = await vscode.workspace.openTextDocument(
-          resolveWorkspaceRelativePath(file)
-        );
-        const text = doc.getText();
-        const importRegex = new RegExp(
-          `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-          "g"
-        );
-        let match: RegExpExecArray | null;
-
-        while ((match = importRegex.exec(text))) {
-          const varName = match[1];
-          const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
-
-          if (resolvedPath !== filePath) {
-            continue;
-          }
-
-          const usageRegex = new RegExp(`${varName}\\.${oldClassName}\\b`, "g");
-          let usageMatch: RegExpExecArray | null;
-
-          while ((usageMatch = usageRegex.exec(text))) {
-            const index =
-              usageMatch.index + usageMatch[0].indexOf(oldClassName);
-            const pos = doc.positionAt(index);
-
-            if (
-              (await isPositionInString(doc, pos)) ||
-              (await isPositionInComment(doc, pos))
-            ) {
-              continue;
-            }
-
-            const usageRange = new vscode.Range(
-              pos,
-              pos.translate(0, oldClassName.length)
-            );
-
-            edit.replace(doc.uri, usageRange, newName);
-          }
-        }
-      })
-    );
-
-    // Update the Css Module File
-    const text = document.getText();
-    const classNameRegex = new RegExp(`\\.${oldClassName}\\b`, "g");
-    let match: RegExpExecArray | null;
-
-    while ((match = classNameRegex.exec(text))) {
-      const offset = match.index;
-      const pos = document.positionAt(offset + 1);
-      const usageRange = new vscode.Range(
-        pos,
-        pos.translate(0, oldClassName.length)
-      );
-
-      edit.replace(document.uri, usageRange, newName);
-    }
-
-    return edit;
+    return await provideRenameEdits({ document, oldClassName, newName });
   };
 
   prepareRename = async (
@@ -264,9 +217,8 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
       return;
     }
     const className = document.getText(wordRange).replace(/^\./, "");
-    const classNames = await ClassNameCache.getClassNames({ document });
 
-    if (classNames && classNames.includes(className)) {
+    if (await ClassNameCache.hasClassName({ className, document })) {
       return new vscode.Range(wordRange.start.translate(0, 1), wordRange.end);
     }
   };

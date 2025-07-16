@@ -37,3 +37,11 @@ export const MESSAGES = {
     CSS_MODULE_CLASS: "CSS Module class",
   },
 };
+
+export const DEBOUNCE_TIMER = {
+  CACHE: 1000,
+  CHECK_DOCUMENT: 1,
+  UPDATE_CLASS_NAME: 5000,
+};
+
+export const MAX_CHECK_DOCUMENT_QUEUE_LENGTH = 100;

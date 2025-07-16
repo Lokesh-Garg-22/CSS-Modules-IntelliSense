@@ -1,43 +1,155 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import safeParser from "postcss-safe-parser";
-import Cache from "./cache";
+import selectorParser from "postcss-selector-parser";
+import Cache, { ClassNameData, ClassNameDataMap } from "./cache";
 import {
   getWorkspaceRelativeUriPath,
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
-import { SUPPORTED_MODULES } from "../config";
-import { getAllModuleFiles } from "../utils/getAllFiles";
+import { DEBOUNCE_TIMER, SUPPORTED_MODULES } from "../config";
 import isPositionInComment from "../utils/isPositionInComment";
+import CssModuleDependencyCache from "./cssModuleDependencyCache";
+import CheckDocument from "./checkDocument";
 
 /**
  * A utility class to extract and cache class names from CSS Module files.
  */
 export default class ClassNameCache {
   /**
-   * Initializes the class name cache by loading from disk or scanning workspace files.
+   * A map to track debounce timers for each CSS module path.
+   * Used to avoid frequent cache updates on rapid file edits.
    */
-  static initialize() {
-    const loaded = Cache.loadCache();
-    if (!loaded) {
-      this.populateCacheFromWorkspace();
+  protected static ClassNameCacheDebounceIdMap: Record<string, NodeJS.Timeout> =
+    {};
+
+  /**
+   * Triggers a debounced update of class name cache for the given document.
+   * Also triggers a refresh on dependent documents.
+   *
+   * @param e The text document to update the class name cache for.
+   */
+  static async updateClassNameCache(e: vscode.TextDocument) {
+    const importPath = getWorkspaceRelativeUriPath(e.uri);
+    clearTimeout(this.ClassNameCacheDebounceIdMap[importPath]);
+    this.ClassNameCacheDebounceIdMap[importPath] = setTimeout(async () => {
+      await ClassNameCache.extractFromUri(e.uri);
+
+      if (SUPPORTED_MODULES.includes(e.languageId)) {
+        CssModuleDependencyCache.getDependentsForDocument(e).forEach(
+          async (workspacePath) => {
+            const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
+            if (!resolvedPath) {
+              return;
+            }
+            const document = await vscode.workspace.openTextDocument(
+              resolvedPath
+            );
+            CheckDocument.push(document);
+          }
+        );
+      }
+    }, DEBOUNCE_TIMER.UPDATE_CLASS_NAME);
+  }
+
+  /**
+   * Checks if the given class name exists in the CSS module associated with a document or URI.
+   *
+   * @param className The class name to check.
+   * @param document Text document to resolve the URI.
+   * @param uri URI of the CSS module.
+   * @returns A promise resolving to true if the class exists, false if not, or undefined if no valid URI is provided.
+   */
+  static async hasClassName({
+    className,
+    document,
+    uri,
+  }: {
+    className: string;
+    document?: vscode.TextDocument;
+    uri?: vscode.Uri;
+  }) {
+    if (!uri && document) {
+      uri = document.uri;
+    }
+    if (!uri) {
+      return;
+    }
+
+    const importPath = getWorkspaceRelativeUriPath(uri);
+    return await this.hasClassNameFromImportPath(className, importPath);
+  }
+
+  /**
+   * Checks if the given class name exists in the cached CSS module identified by import path.
+   *
+   * @param className The class name to check.
+   * @param importPath The workspace-relative path to the CSS module file.
+   * @returns A promise resolving to true if the class exists, or false if not.
+   */
+  static async hasClassNameFromImportPath(
+    className: string,
+    importPath: string
+  ): Promise<boolean | undefined> {
+    if (Cache.classNameCache.hasByKey(importPath)) {
+      return Cache.classNameCache.getByKey(importPath)?.has(className);
+    } else {
+      return (await this.extractAndCacheClassNames(importPath))?.has(className);
     }
   }
 
   /**
-   * Scans all CSS Module files in the workspace and populates the class name cache.
+   * Retrieves metadata (such as range) for a class name from a document or URI.
+   *
+   * @param className The class name to retrieve data for.
+   * @param document Text document.
+   * @param uri URI to locate the module file.
+   * @returns An array of `ClassNameData` for the class, or undefined if not found.
    */
-  static async populateCacheFromWorkspace() {
-    const files = await getAllModuleFiles();
-    await Promise.all(files.map((uri) => this.extractFromUri(uri)));
+  static async getClassNameData({
+    className,
+    document,
+    uri,
+  }: {
+    className: string;
+    document?: vscode.TextDocument;
+    uri?: vscode.Uri;
+  }) {
+    if (!uri && document) {
+      uri = document.uri;
+    }
+    if (!uri) {
+      return;
+    }
 
-    Cache.saveCache();
+    const importPath = getWorkspaceRelativeUriPath(uri);
+    return await this.getClassNameDataFromImportPath(className, importPath);
   }
 
   /**
-   * Retrieves class names from the given document or URI, checking the cache first.
-   * @param param0 Object containing a `vscode.TextDocument` or `vscode.Uri`.
-   * @returns An array of class names, or undefined if invalid or not found.
+   * Retrieves metadata (such as range) for a class name from a specific import path.
+   *
+   * @param className The class name to retrieve data for.
+   * @param importPath The workspace-relative path to the CSS module file.
+   * @returns An array of `ClassNameData`, or undefined if not found or unsupported.
+   */
+  static async getClassNameDataFromImportPath(
+    className: string,
+    importPath: string
+  ): Promise<ClassNameData[] | undefined> {
+    if (Cache.classNameCache.hasByKey(importPath)) {
+      return Cache.classNameCache.getByKey(importPath)?.get(className);
+    } else {
+      return (await this.extractAndCacheClassNames(importPath))?.get(className);
+    }
+  }
+
+  /**
+   * Retrieves all class names from a document or URI.
+   *
+   * @param document Text document.
+   * @param uri URI of the CSS module file.
+   * @returns An array of class names, or undefined if not supported.
    */
   static async getClassNames({
     document,
@@ -45,7 +157,7 @@ export default class ClassNameCache {
   }: {
     document?: vscode.TextDocument;
     uri?: vscode.Uri;
-  }): Promise<string[] | undefined> {
+  }) {
     if (!uri && document) {
       uri = document.uri;
     }
@@ -58,22 +170,28 @@ export default class ClassNameCache {
   }
 
   /**
-   * Retrieves class names from a given import path, checking the cache first.
-   * @param importPath The relative path to the module file.
+   * Retrieves all class names from a given import path.
+   *
+   * @param importPath The workspace-relative path to the CSS module.
    * @returns An array of class names, or undefined if the file is not supported.
    */
   static async getClassNamesFromImportPath(
     importPath: string
   ): Promise<string[] | undefined> {
-    if (Cache.classNameCache.has(importPath)) {
-      return [...(Cache.classNameCache.get(importPath) || [])];
+    if (Cache.classNameCache.hasByKey(importPath)) {
+      return Array.from(
+        Cache.classNameCache.getByKey(importPath)?.keys() || []
+      );
     } else {
-      return await this.extractAndCacheClassNames(importPath);
+      return Array.from(
+        (await this.extractAndCacheClassNames(importPath))?.keys() || []
+      );
     }
   }
 
   /**
-   * Loads and parses class names from the given file URI and stores them in the cache.
+   * Extracts and caches class names from a URI.
+   *
    * @param uri The URI of the CSS Module file.
    */
   static async extractFromUri(uri: vscode.Uri): Promise<undefined> {
@@ -82,16 +200,18 @@ export default class ClassNameCache {
   }
 
   /**
-   * Parses and extracts class names from a CSS/LESS/SCSS module file, then caches the result.
+   * Parses and extracts class names from a CSS/LESS/SCSS module file,
+   * then caches the result internally.
+   *
    * @param importPath The workspace-relative import path of the module file.
-   * @returns A list of class names, or undefined if the file is invalid or not supported.
+   * @returns A map of class names to metadata, or undefined if the file is invalid or not supported.
    */
   static async extractAndCacheClassNames(
     importPath: string
-  ): Promise<string[] | undefined> {
+  ): Promise<ClassNameDataMap | undefined> {
     const filePath = resolveWorkspaceRelativePath(importPath);
     if (!fs.existsSync(filePath)) {
-      Cache.classNameCache.delete(importPath); // Clean up stale entries
+      Cache.classNameCache.deleteByKey(importPath); // Clean up stale entries
       return;
     }
 
@@ -102,25 +222,48 @@ export default class ClassNameCache {
 
     const content = document.getText();
     const root = safeParser(content);
-    const classNames = new Set<string>();
+    const classNames = new ClassNameDataMap();
     const walkPromises: Promise<void>[] = [];
 
     const handleRule = async (
       rule: Parameters<Parameters<(typeof root)["walkRules"]>[0]>[0]
     ) => {
-      if (rule.source?.start) {
-        const position = new vscode.Position(
-          rule.source.start.line - 1,
-          rule.source.start.column - 1
-        );
-        const isCommented = await isPositionInComment(document, position);
-        if (isCommented) {
-          return;
-        }
+      const selector = rule.selector;
+      const ruleStart = rule.source?.start;
+
+      if (!selector || !ruleStart) {
+        return;
       }
 
-      const matches = rule.selector.match(/\.(\w[\w-]*)/g);
-      matches?.forEach((m) => classNames.add(m.slice(1)));
+      if (
+        await isPositionInComment(
+          document,
+          new vscode.Position(ruleStart.line - 1, ruleStart.column - 1)
+        )
+      ) {
+        return;
+      }
+
+      selectorParser((selectors) => {
+        selectors.walkClasses((classNode) => {
+          const { value, sourceIndex } = classNode;
+
+          // Compute position in the document
+          const selectorOffsetInDoc =
+            document.offsetAt(
+              new vscode.Position(ruleStart.line - 1, ruleStart.column - 1)
+            ) + sourceIndex;
+
+          const data: ClassNameData = {
+            range: new vscode.Range(
+              document.positionAt(selectorOffsetInDoc),
+              document.positionAt(selectorOffsetInDoc + value.length + 1) // +1 for "."
+            ),
+          };
+
+          classNames.add(value, data);
+        });
+      }).processSync(selector);
     };
 
     root.walkRules((rule) => {
@@ -129,8 +272,8 @@ export default class ClassNameCache {
 
     await Promise.all(walkPromises);
 
-    Cache.classNameCache.set(importPath, classNames);
+    Cache.classNameCache.setByKey(importPath, classNames);
     Cache.saveCache();
-    return Array.from(classNames);
+    return classNames;
   }
 }
