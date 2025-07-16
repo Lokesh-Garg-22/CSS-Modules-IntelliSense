@@ -7,10 +7,16 @@ import { LRUCache } from "lru-cache";
 type CacheJsonObject = {
   pathMapCache: Array<string>;
   modulePathCache: Record<number, number[]>;
-  classNameCache: Record<number, string[]>;
+  classNameCache: Record<number, Record<string, ClassNameData[]>>;
 };
 
+export type ClassNameData = { range: vscode.Range };
+
 const cacheFile = "cache.json";
+
+export const isLRUCache = <K extends {}, V extends {}, FC = unknown>(
+  cache: Map<K, V> | LRUCache<K, V, FC>
+): cache is LRUCache<K, V, FC> => Object.keys(cache).includes("fetch");
 
 class PathMapCache extends Array<string> {
   protected reverseMap = new Map<string, number>();
@@ -55,15 +61,42 @@ class PathMapCache extends Array<string> {
   }
 }
 
-class BaseCache<V extends {}, FC = unknown> extends LRUCache<number, V, FC> {
+class BaseCache<V extends {}, FC = unknown> {
+  protected cache: Map<number, V> | LRUCache<number, V, FC>;
   protected pathMapCache: PathMapCache;
 
-  constructor(
-    pathMapCache: PathMapCache,
-    options: LRUCache<number, V, FC> | LRUCache.Options<number, V, FC>
-  ) {
-    super(options);
+  constructor(pathMapCache: PathMapCache, cache: typeof this.cache) {
+    this.cache = cache;
     this.pathMapCache = pathMapCache;
+  }
+
+  clear() {
+    return this.cache.clear();
+  }
+  delete(key: number) {
+    return this.cache.delete(key);
+  }
+  get(key: number) {
+    return this.cache.get(key);
+  }
+  has(key: number) {
+    return this.cache.has(key);
+  }
+  set(key: number, value: V) {
+    this.cache.set(key, value);
+    return this;
+  }
+  entries() {
+    return this.cache.entries();
+  }
+  keys() {
+    return this.cache.keys();
+  }
+  values() {
+    return this.cache.values();
+  }
+  [Symbol.iterator]() {
+    return this.cache[Symbol.iterator]();
   }
 
   hasByKey(key: string): boolean {
@@ -114,11 +147,8 @@ class ModulePathCacheSet extends Set<number> {
 }
 
 class ModulePathCache extends BaseCache<ModulePathCacheSet> {
-  constructor(
-    pathMap: PathMapCache,
-    options: ConstructorParameters<typeof BaseCache<ModulePathCacheSet>>[1]
-  ) {
-    super(pathMap, options);
+  constructor(pathMap: PathMapCache) {
+    super(pathMap, new Map<number, ModulePathCacheSet>());
   }
 
   createKey(key: string) {
@@ -128,12 +158,30 @@ class ModulePathCache extends BaseCache<ModulePathCacheSet> {
   }
 }
 
-class ClassNameCache extends BaseCache<Set<string>> {
+export class ClassNameDataMap extends Map<string, ClassNameData[]> {
+  add(key: string, value: ClassNameData) {
+    if (this.has(key)) {
+      const arr = this.get(key)!;
+      arr.push(value);
+    } else {
+      const arr = [value];
+      this.set(key, arr);
+    }
+    return this;
+  }
+}
+
+class ClassNameCache extends BaseCache<ClassNameDataMap> {
   constructor(
     pathMap: PathMapCache,
-    options: ConstructorParameters<typeof BaseCache<Set<string>>>[1]
+    options:
+      | LRUCache<number, ClassNameDataMap>
+      | LRUCache.Options<number, ClassNameDataMap, unknown>
   ) {
-    super(pathMap, options);
+    const lruCache: ConstructorParameters<
+      typeof BaseCache<ClassNameDataMap>
+    >[1] = new LRUCache(options);
+    super(pathMap, lruCache);
   }
 }
 
@@ -144,9 +192,7 @@ export default class Cache {
    * Cache mapping from imported CSS module paths (relative to workspace)
    * to the set of document paths that import them.
    */
-  static modulePathCache = new ModulePathCache(this.pathMapCache, {
-    max: 1000,
-  });
+  static modulePathCache = new ModulePathCache(this.pathMapCache);
 
   /**
    * Cache mapping from imported CSS module paths (relative to workspace)
@@ -227,7 +273,7 @@ export default class Cache {
     }
 
     for (const [key, valueSet] of this.classNameCache.entries()) {
-      cacheAsObject.classNameCache[key] = [...valueSet];
+      cacheAsObject.classNameCache[key] = Object.fromEntries(valueSet);
     }
 
     try {
@@ -273,9 +319,9 @@ export default class Cache {
       );
 
       this.classNameCache.setMap(
-        Object.entries(parsed.classNameCache || {}).map(([key, valueArray]) => [
+        Object.entries(parsed.classNameCache || {}).map(([key, value]) => [
           key,
-          new Set(valueArray),
+          new ClassNameDataMap(Object.entries(value)),
         ])
       );
     } catch (error) {

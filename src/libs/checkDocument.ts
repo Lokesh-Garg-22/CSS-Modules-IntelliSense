@@ -1,6 +1,11 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
-import { DEBOUNCE_TIMER, MESSAGES, SUPPORTED_LANGS } from "../config";
+import {
+  DEBOUNCE_TIMER,
+  MAX_CHECK_DOCUMENT_QUEUE_LENGTH,
+  MESSAGES,
+  SUPPORTED_LANGS,
+} from "../config";
 import ClassNameCache from "./classNameCache";
 import {
   getWorkspaceRelativeImportPath,
@@ -58,6 +63,9 @@ export default class CheckDocument {
       const length = this.documentQueue.push(document);
       this.checkNextDocument();
       return length;
+    }
+    while (this.documentQueue.length >= MAX_CHECK_DOCUMENT_QUEUE_LENGTH) {
+      this.documentQueue.shift();
     }
     return this.documentQueue.push(document);
   }
@@ -171,11 +179,6 @@ export default class CheckDocument {
         continue;
       }
 
-      const definedClassNames =
-        await ClassNameCache.getClassNamesFromImportPath(
-          getWorkspaceRelativeImportPath(document, importPath)
-        );
-
       const usageRegex = new RegExp(`${importVar}\\.([a-zA-Z0-9_]+)`, "g");
       let usageMatch: RegExpExecArray | null;
       while ((usageMatch = usageRegex.exec(text))) {
@@ -190,7 +193,12 @@ export default class CheckDocument {
           continue;
         }
 
-        if (!definedClassNames?.includes(className)) {
+        if (
+          !(await ClassNameCache.hasClassNameFromImportPath(
+            className,
+            getWorkspaceRelativeImportPath(document, importPath)
+          ))
+        ) {
           const range = new vscode.Range(
             classPos,
             classPos.translate(0, className.length)

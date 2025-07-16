@@ -209,6 +209,7 @@
     "lru-cache": "^11.1.0",
     "postcss": "^8.5.5",
     "postcss-safe-parser": "^7.0.1",
+    "postcss-selector-parser": "^7.1.0",
     "vscode-oniguruma": "^2.0.1",
     "vscode-textmate": "^9.2.0"
   }
