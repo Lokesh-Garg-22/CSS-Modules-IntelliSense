@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased] – 2025-07-XX
 
+### Added
+
+- Support for multiline CSS module import statements.
+
+### Changed
+
+- Improved class name detection logic to skip usages inside strings, comments,
+  and nested property access (e.g., `temp.styles.class`) in
+  JavaScript/TypeScript files.
+- Refactored regular expressions for improved clarity and support for multiline imports.
+
+### Fixed
+
+- Autocompletion no longer triggers for chained or nested properties like `temp.styles.class`.
+- Class name references inside strings or comments
+  are now correctly ignored during detection.
+
 ## [0.1.1] – 2025-07-16
 
 ### Changed

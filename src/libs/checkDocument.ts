@@ -11,9 +11,8 @@ import {
   getWorkspaceRelativeImportPath,
   resolveImportPathWithAliases,
 } from "../utils/getPath";
-import isPositionInString from "../utils/isPositionInString";
-import isPositionInComment from "../utils/isPositionInComment";
-import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
+import getAllImportModulePaths from "../utils/getAllImportModulePaths";
+import getAllClassNames from "../utils/getAllClassNames";
 
 /**
  * Class responsible for analyzing script documents to validate usage of CSS Modules.
@@ -140,79 +139,56 @@ export default class CheckDocument {
 
     const text = document.getText();
     const diagnostics: vscode.Diagnostic[] = [];
+    const importMatches = await getAllImportModulePaths(document);
 
-    const importRegex = new RegExp(
-      `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-      "g"
-    );
+    await Promise.all(
+      importMatches.map(async (importMatch) => {
+        const [importLine, importVar, importPath] = importMatch;
 
-    let importMatch: RegExpExecArray | null;
-    while ((importMatch = importRegex.exec(text))) {
-      const [_, importVar, importPath] = importMatch;
-
-      const startPos = document.positionAt(importMatch.index);
-      if (
-        (await isPositionInComment(document, startPos)) ||
-        (await isPositionInString(document, startPos))
-      ) {
-        continue;
-      }
-
-      const resolvedPath = resolveImportPathWithAliases(document, importPath);
-      if (!fs.existsSync(resolvedPath)) {
-        diagnostics.push(
-          new vscode.Diagnostic(
-            new vscode.Range(
-              document.positionAt(
-                importMatch.index + importMatch[0].indexOf(importPath)
-              ),
-              document.positionAt(
-                importMatch.index +
-                  importMatch[0].indexOf(importPath) +
-                  importPath.length
-              )
-            ),
-            MESSAGES.DIAGNOSTIC.CANNOT_FIND_MODULE(importPath),
-            vscode.DiagnosticSeverity.Error
-          )
-        );
-        continue;
-      }
-
-      const usageRegex = new RegExp(`${importVar}\\.([a-zA-Z0-9_]+)`, "g");
-      let usageMatch: RegExpExecArray | null;
-      while ((usageMatch = usageRegex.exec(text))) {
-        const className = usageMatch[1];
-        const classStartIndex = usageMatch.index + importVar.length + 1;
-        const classPos = document.positionAt(classStartIndex);
-
-        if (
-          (await isPositionInString(document, classPos)) ||
-          (await isPositionInComment(document, classPos))
-        ) {
-          continue;
-        }
-
-        if (
-          !(await ClassNameCache.hasClassNameFromImportPath(
-            className,
-            getWorkspaceRelativeImportPath(document, importPath)
-          ))
-        ) {
-          const range = new vscode.Range(
-            classPos,
-            classPos.translate(0, className.length)
-          );
+        const resolvedPath = resolveImportPathWithAliases(document, importPath);
+        if (!fs.existsSync(resolvedPath)) {
           diagnostics.push(
             new vscode.Diagnostic(
-              range,
-              MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
-              vscode.DiagnosticSeverity.Warning
+              new vscode.Range(
+                document.positionAt(
+                  importMatch.index + importLine.indexOf(importPath)
+                ),
+                document.positionAt(
+                  importMatch.index +
+                    importLine.indexOf(importPath) +
+                    importPath.length
+                )
+              ),
+              MESSAGES.DIAGNOSTIC.CANNOT_FIND_MODULE(importPath),
+              vscode.DiagnosticSeverity.Error
             )
           );
+          return;
         }
-      }
-    }
+
+        const classNamesData = await getAllClassNames(importVar, document);
+
+        classNamesData.map(async (classNameData) => {
+          const className = classNameData.className;
+
+          if (
+            !(await ClassNameCache.hasClassNameFromImportPath(
+              className,
+              getWorkspaceRelativeImportPath(document, importPath)
+            ))
+          ) {
+            const range = classNameData.range;
+            diagnostics.push(
+              new vscode.Diagnostic(
+                range,
+                MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
+                vscode.DiagnosticSeverity.Warning
+              )
+            );
+          }
+        });
+      })
+    );
 
     this.diagnosticCollection.set(document.uri, diagnostics);
   }
