@@ -20,7 +20,10 @@ export function activate(context: vscode.ExtensionContext) {
   CheckDocument.diagnosticCollection = diagnosticCollection;
 
   Cache.context = context;
-  Cache.loadCache();
+  const loaded = Cache.loadCache();
+  if (!loaded) {
+    CssModuleDependencyCache.populateCacheFromWorkspace();
+  }
   loadCaches();
 
   vscode.workspace.textDocuments.forEach(async (file) =>
