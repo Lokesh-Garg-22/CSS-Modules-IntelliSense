@@ -7,7 +7,40 @@ import {
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
-import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
+import isDocumentModule from "../utils/isDocumentModule";
+import getImportModulePath from "../utils/getImportModulePath";
+import getAllImportModulePaths from "../utils/getAllImportModulePaths";
+import getDataOfClassName from "../utils/getDataOfClassName";
+import ClassNameCache from "../libs/classNameCache";
+
+const definitionProviderForModules = async (
+  cssDoc: vscode.TextDocument,
+  locations: vscode.LocationLink[],
+  className: string,
+  originSelectionRange: vscode.Range
+) => {
+  const classNamesData = await ClassNameCache.getClassNameData({
+    className,
+    document: cssDoc,
+  });
+
+  classNamesData?.forEach((classNameData) => {
+    locations.push({
+      originSelectionRange,
+      targetUri: cssDoc.uri,
+      targetRange: new vscode.Range(
+        classNameData.range.start.line <= 0
+          ? classNameData.range.start.translate(
+              0,
+              -classNameData.range.start.character
+            )
+          : classNameData.range.start.translate(-1, 0),
+        classNameData.range.start.translate(1, 0)
+      ),
+      targetSelectionRange: classNameData.range,
+    });
+  });
+};
 
 export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
   provideDefinition = async (
@@ -28,58 +61,25 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     const className = document.getText(wordRange);
-    const lineText = document.lineAt(position).text;
-
-    // Extract the variable before the dot
-    const prefix = lineText.slice(0, wordRange.start.character);
-    const varMatch = /(\w+)\.$/.exec(prefix);
-    if (!varMatch) {
+    const importModulePath = getImportModulePath(document, position);
+    if (!importModulePath) {
       return;
     }
 
-    const varName = varMatch[1];
-    const fullText = document.getText();
-
-    // Match imports like: import styles from './file.module.css'
-    const importRegex = new RegExp(
-      `import\\s+${varName}\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`
-    );
-    const importMatch = importRegex.exec(fullText);
-    if (!importMatch) {
-      return;
-    }
-
-    const cssPath = resolveImportPathWithAliases(document, importMatch[1]);
+    const cssPath = resolveImportPathWithAliases(document, importModulePath);
     if (!fs.existsSync(cssPath)) {
       return;
     }
 
     const cssDoc = await vscode.workspace.openTextDocument(cssPath);
-    const cssText = cssDoc.getText();
-
     const locations: vscode.LocationLink[] = [];
-    const classRegex = new RegExp(`\\.${className}\\b`, "g");
 
-    let match: RegExpExecArray | null;
-    while ((match = classRegex.exec(cssText))) {
-      const offset = match.index;
-      const pos = cssDoc.positionAt(offset + 1); // +1 to skip '.'
-
-      locations.push({
-        originSelectionRange: new vscode.Range(wordRange.start, wordRange.end),
-        targetUri: cssDoc.uri,
-        targetRange: new vscode.Range(
-          pos.line <= 0
-            ? pos.translate(0, -pos.character)
-            : pos.translate(-1, 0),
-          pos.translate(1, 0)
-        ),
-        targetSelectionRange: new vscode.Range(
-          pos,
-          pos.translate(0, match[0].length - 1)
-        ),
-      });
-    }
+    await definitionProviderForModules(
+      cssDoc,
+      locations,
+      className,
+      new vscode.Range(wordRange.start, wordRange.end)
+    );
 
     return locations.length > 0 ? locations : undefined;
   };
@@ -92,12 +92,13 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
   ): Promise<vscode.LocationLink[] | undefined> => {
     if (
       (await isPositionInString(cssDoc, position)) ||
-      (await isPositionInComment(cssDoc, position))
+      (await isPositionInComment(cssDoc, position)) ||
+      !isDocumentModule(cssDoc)
     ) {
       return;
     }
 
-    const wordRange = cssDoc.getWordRangeAtPosition(position, /\.[\w]+/);
+    const wordRange = cssDoc.getWordRangeAtPosition(position, /\.[\w-]+/);
     if (!wordRange) {
       return;
     }
@@ -109,68 +110,34 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     const locations: vscode.LocationLink[] = [];
-    const cssText = cssDoc.getText();
-    const classRegex = new RegExp(`\\.${className}\\b`, "g");
 
     // Add definitions in the current CSS module
-    let match: RegExpExecArray | null;
-    while ((match = classRegex.exec(cssText))) {
-      const offset = match.index;
-      const pos = cssDoc.positionAt(offset + 1); // skip '.'
-
-      locations.push({
-        originSelectionRange: new vscode.Range(wordRange.start, wordRange.end),
-        targetUri: cssDoc.uri,
-        targetRange: new vscode.Range(
-          pos.line <= 0
-            ? pos.translate(0, -pos.character)
-            : pos.translate(-1, 0),
-          pos.translate(1, 0)
-        ),
-        targetSelectionRange: new vscode.Range(
-          pos,
-          pos.translate(0, className.length)
-        ),
-      });
-    }
+    await definitionProviderForModules(
+      cssDoc,
+      locations,
+      className,
+      new vscode.Range(wordRange.start, wordRange.end)
+    );
 
     // Add usages from dependent files
     const dependents =
       CssModuleDependencyCache.getDependentsForDocument(cssDoc);
-    await Promise.all(
-      dependents.map(async (filePath) => {
-        const doc = await vscode.workspace.openTextDocument(
-          resolveWorkspaceRelativePath(filePath)
-        );
-        const docText = doc.getText();
+    for (const filePath of dependents) {
+      const doc = await vscode.workspace.openTextDocument(
+        resolveWorkspaceRelativePath(filePath)
+      );
+      const importMatches = await getAllImportModulePaths(doc);
 
-        const importRegex = new RegExp(
-          `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-          "g"
-        );
-        let importMatch: RegExpExecArray | null;
-
-        while ((importMatch = importRegex.exec(docText))) {
+      await Promise.all(
+        importMatches.map(async (importMatch) => {
           const [_, varName, importPath] = importMatch;
           const resolvedPath = resolveImportPathWithAliases(doc, importPath);
           if (resolvedPath !== cssPath) {
-            continue;
+            return;
           }
 
-          const usageRegex = new RegExp(`${varName}\\.${className}\\b`, "g");
-          let usageMatch: RegExpExecArray | null;
-
-          while ((usageMatch = usageRegex.exec(docText))) {
-            const index = usageMatch.index + usageMatch[0].indexOf(className);
-            const pos = doc.positionAt(index);
-
-            if (
-              (await isPositionInString(doc, pos)) ||
-              (await isPositionInComment(doc, pos))
-            ) {
-              continue;
-            }
-
+          const positions = await getDataOfClassName(varName, className, doc);
+          for (const positionData of positions) {
             locations.push({
               originSelectionRange: new vscode.Range(
                 wordRange.start,
@@ -178,20 +145,20 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
               ),
               targetUri: doc.uri,
               targetRange: new vscode.Range(
-                pos.line <= 0
-                  ? pos.translate(0, -pos.character)
-                  : pos.translate(-1, 0),
-                pos.translate(1, 0)
+                positionData.startPosition.line <= 0
+                  ? positionData.startPosition.translate(
+                      0,
+                      -positionData.startPosition.character
+                    )
+                  : positionData.startPosition.translate(-1, 0),
+                positionData.startPosition.translate(1, 0)
               ),
-              targetSelectionRange: new vscode.Range(
-                pos,
-                pos.translate(0, className.length)
-              ),
+              targetSelectionRange: positionData.range,
             });
           }
-        }
-      })
-    );
+        })
+      );
+    }
 
     return locations.length > 0 ? locations : undefined;
   };

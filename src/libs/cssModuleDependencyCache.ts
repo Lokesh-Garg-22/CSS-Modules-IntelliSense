@@ -16,14 +16,10 @@ export default class CssModuleDependencyCache {
    * Uses getAllFiles() to find all source files in the workspace.
    */
   static async populateCacheFromWorkspace() {
-    await getAllScriptFiles().then(
-      async (files) =>
-        await Promise.all(
-          files.map(async (uri) => {
-            await this.updateCacheForDocument({ uri });
-          })
-        )
-    );
+    const files = await getAllScriptFiles();
+    for (const uri of files) {
+      await this.updateCacheForDocument({ uri });
+    }
 
     Cache.saveCache();
   }

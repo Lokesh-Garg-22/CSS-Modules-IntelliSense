@@ -9,7 +9,10 @@ import {
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
-import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
+import isDocumentModule from "../utils/isDocumentModule";
+import getAllImportModulePaths from "../utils/getAllImportModulePaths";
+import getImportModulePath from "../utils/getImportModulePath";
+import getDataOfClassName from "../utils/getDataOfClassName";
 
 const provideRenameEdits = async ({
   document,
@@ -27,50 +30,31 @@ const provideRenameEdits = async ({
   const files = CssModuleDependencyCache.getDependentsForDocument(document);
 
   // Update all the Javascript Files
-  await Promise.all(
-    files.map(async (file) => {
-      const doc = await vscode.workspace.openTextDocument(
-        resolveWorkspaceRelativePath(file)
-      );
-      const text = doc.getText();
-      const importRegex = new RegExp(
-        `import\\s+(\\w+)\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-        "g"
-      );
-      let match: RegExpExecArray | null;
+  for (const file of files) {
+    const doc = await vscode.workspace.openTextDocument(
+      resolveWorkspaceRelativePath(file)
+    );
+    const matches = await getAllImportModulePaths(doc);
 
-      while ((match = importRegex.exec(text))) {
-        const varName = match[1];
-        const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
+    matches.forEach(async (match) => {
+      const varName = match[1];
+      const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
 
-        if (resolvedPath !== filePath) {
-          continue;
-        }
-
-        const usageRegex = new RegExp(`${varName}\\.${oldClassName}\\b`, "g");
-        let usageMatch: RegExpExecArray | null;
-
-        while ((usageMatch = usageRegex.exec(text))) {
-          const index = usageMatch.index + usageMatch[0].indexOf(oldClassName);
-          const pos = doc.positionAt(index);
-
-          if (
-            (await isPositionInString(doc, pos)) ||
-            (await isPositionInComment(doc, pos))
-          ) {
-            continue;
-          }
-
-          const usageRange = new vscode.Range(
-            pos,
-            pos.translate(0, oldClassName.length)
-          );
-
-          edit.replace(doc.uri, usageRange, newName);
-        }
+      if (resolvedPath !== filePath) {
+        return;
       }
-    })
-  );
+
+      const classNamePositions = await getDataOfClassName(
+        varName,
+        oldClassName,
+        doc
+      );
+
+      classNamePositions.forEach((classNamePosition) => {
+        edit.replace(doc.uri, classNamePosition.range, newName);
+      });
+    });
+  }
 
   // Update the Css Module File
   const classNameData = await ClassNameCache.getClassNameData({
@@ -109,24 +93,15 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     }
 
     const oldClassName = document.getText(wordRange);
-    const lineText = document.lineAt(position).text;
-    const prefix = lineText.slice(0, wordRange.start.character);
-    const varName = prefix.match(/(\w+)\.$/)?.[1];
-    if (!varName) {
+    const importModulePath = getImportModulePath(document, position);
+    if (!importModulePath) {
       return;
     }
 
-    const fullText = document.getText();
-    // Match imports like: import styles from './file.module.css'
-    const importRegex = new RegExp(
-      `import\\s+${varName}\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`
+    const cssFilePath = resolveImportPathWithAliases(
+      document,
+      importModulePath
     );
-    const importMatch = importRegex.exec(fullText);
-    if (!importMatch) {
-      return;
-    }
-
-    const cssFilePath = resolveImportPathWithAliases(document, importMatch[1]);
     if (!fs.existsSync(cssFilePath)) {
       return;
     }
@@ -144,34 +119,27 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position))
+    ) {
+      return;
+    }
+
     const wordRange = document.getWordRangeAtPosition(position, /\w+/);
     if (!wordRange) {
       return;
     }
 
     const className = document.getText(wordRange);
-    const lineText = document.lineAt(position).text;
-
-    // Extract the variable before the dot
-    const prefix = lineText.slice(0, wordRange.start.character);
-    const varName = prefix.match(/(\w+)\.$/)?.[1];
-    if (!varName) {
-      return;
-    }
-
-    const fullText = document.getText();
-    // Match imports like: import styles from './file.module.css'
-    const moduleRegex = new RegExp(
-      `import\\s+${varName}\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`
-    );
-    const importMatch = moduleRegex.exec(fullText);
-    if (!importMatch) {
+    const importModulePath = getImportModulePath(document, position);
+    if (!importModulePath) {
       return;
     }
 
     return (await ClassNameCache.hasClassNameFromImportPath(
       className,
-      getWorkspaceRelativeImportPath(document, importMatch[1])
+      getWorkspaceRelativeImportPath(document, importModulePath)
     ))
       ? wordRange
       : undefined;
@@ -186,7 +154,8 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
   ) => {
     if (
       (await isPositionInString(document, position)) ||
-      (await isPositionInComment(document, position))
+      (await isPositionInComment(document, position)) ||
+      !isDocumentModule(document)
     ) {
       return;
     }
@@ -208,6 +177,14 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position)) ||
+      !isDocumentModule(document)
+    ) {
+      return;
+    }
+
     const wordRange = document.getWordRangeAtPosition(
       position,
       /\.[a-zA-Z0-9_-]+/

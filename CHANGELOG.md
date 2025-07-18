@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.2] – 2025-07-18
+
+### Added
+
+- Support for multiline CSS module import statements.
+
+### Changed
+
+- Improved class name detection logic to skip usages inside strings, comments,
+  and nested property access (e.g., `temp.styles.class`) in
+  JavaScript/TypeScript files.
+- Refactored regular expressions for improved clarity and support for multiline imports.
+
+### Fixed
+
+- Autocompletion no longer triggers for chained or nested properties like `temp.styles.class`.
+- Class name references inside strings or comments
+  are now correctly ignored during detection.
+- and some general performance improvements, including faster data loading
+  and reduced memory usage.
+
 ## [0.1.1] – 2025-07-16
 
 ### Changed
@@ -69,6 +90,7 @@ All notable changes to this project will be documented in this file.
 - Go-to-Definition support for `styles.className` references.
 - Autocompletion of class names in JavaScript and TypeScript.
 
+[0.1.2]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.5...v0.1.0
 [0.0.5]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.4...v0.0.5

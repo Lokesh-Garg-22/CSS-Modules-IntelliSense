@@ -52,7 +52,7 @@ suite("Definition Provider Tests", function () {
     );
 
     const expectedRange = new vscode.Range(
-      new vscode.Position(0, 1),
+      new vscode.Position(0, 0),
       new vscode.Position(0, 10)
     );
 
@@ -124,7 +124,7 @@ suite("Definition Provider Tests", function () {
           );
 
           const expectedRange = new vscode.Range(
-            new vscode.Position(0, 1),
+            new vscode.Position(0, 0),
             new vscode.Position(0, 10)
           );
 

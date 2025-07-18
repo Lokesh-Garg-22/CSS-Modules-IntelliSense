@@ -14,18 +14,22 @@ import loadCaches from "./libs/loadCaches";
 import CheckDocument from "./libs/checkDocument";
 import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
 
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
     vscode.languages.createDiagnosticCollection("cssModules");
   CheckDocument.diagnosticCollection = diagnosticCollection;
 
   Cache.context = context;
-  Cache.loadCache();
+  const loaded = Cache.loadCache();
+  if (!loaded) {
+    CssModuleDependencyCache.populateCacheFromWorkspace();
+  }
   loadCaches();
 
-  vscode.workspace.textDocuments.forEach(async (file) =>
-    CheckDocument.push(await vscode.workspace.openTextDocument(file.uri))
-  );
+  const files = vscode.workspace.textDocuments;
+  for (const file of files) {
+    CheckDocument.push(await vscode.workspace.openTextDocument(file.uri));
+  }
   vscode.workspace.onDidOpenTextDocument((document) =>
     CheckDocument.push(document)
   );

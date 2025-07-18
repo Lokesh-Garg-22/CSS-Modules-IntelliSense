@@ -4,7 +4,7 @@ import ClassNameCache from "../libs/classNameCache";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
 import { getWorkspaceRelativeImportPath } from "../utils/getPath";
-import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
+import getImportModulePath from "../utils/getImportModulePath";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
@@ -26,25 +26,13 @@ export default class CompletionItemProvider
       return;
     }
 
-    const line = document.lineAt(position).text;
-    const prefix = line.substring(0, position.character);
-    const match = prefix.match(/(\w+)\.([\w-]*)$/);
-    if (!match) {
-      return;
-    }
-
-    const [_, varName] = match;
-    const importRegex = new RegExp(
-      `import\\s+${varName}\\s+from\\s+['"](.+\\.module\\.(${getModuleFileRegex()}))['"]`
-    );
-    const fullText = document.getText();
-    const importMatch = fullText.match(importRegex);
-    if (!importMatch) {
+    const importModulePath = getImportModulePath(document, position);
+    if (!importModulePath) {
       return;
     }
 
     const classNames = await ClassNameCache.getClassNamesFromImportPath(
-      getWorkspaceRelativeImportPath(document, importMatch[1])
+      getWorkspaceRelativeImportPath(document, importModulePath)
     );
     if (!classNames) {
       return;
