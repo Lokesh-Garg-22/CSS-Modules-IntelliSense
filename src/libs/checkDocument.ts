@@ -168,7 +168,7 @@ export default class CheckDocument {
 
         const classNamesData = await getAllClassNames(importVar, document);
 
-        classNamesData.map(async (classNameData) => {
+        for (const classNameData of classNamesData) {
           const className = classNameData.className;
 
           if (
@@ -186,7 +186,7 @@ export default class CheckDocument {
               )
             );
           }
-        });
+        }
       })
     );
 

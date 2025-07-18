@@ -17,11 +17,11 @@ const loadCaches = () => {
   );
 
   // CssModuleDependencyCache
-  vscode.workspace.onDidCreateFiles((e) =>
-    e.files.forEach((uri) =>
-      CssModuleDependencyCache.updateCacheForDocument({ uri })
-    )
-  );
+  vscode.workspace.onDidCreateFiles((e) => {
+    for (const uri of e.files) {
+      CssModuleDependencyCache.updateCacheForDocument({ uri });
+    }
+  });
 
   vscode.workspace.onDidSaveTextDocument((e) =>
     CssModuleDependencyCache.updateCacheForDocument({ document: e })
@@ -35,9 +35,10 @@ const loadCaches = () => {
     CssModuleDependencyCache.updateCacheForDocument({ document: e.document })
   );
 
-  vscode.workspace.textDocuments.forEach(async (file) => {
+  const files = vscode.workspace.textDocuments;
+  for (const file of files) {
     CssModuleDependencyCache.updateCacheForDocument({ document: file });
-  });
+  }
 };
 
 export default loadCaches;

@@ -36,18 +36,18 @@ export default class ClassNameCache {
       await ClassNameCache.extractFromUri(e.uri);
 
       if (SUPPORTED_MODULES.includes(e.languageId)) {
-        CssModuleDependencyCache.getDependentsForDocument(e).forEach(
-          async (workspacePath) => {
-            const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
-            if (!resolvedPath) {
-              return;
-            }
-            const document = await vscode.workspace.openTextDocument(
-              resolvedPath
-            );
-            CheckDocument.push(document);
+        const dependents = CssModuleDependencyCache.getDependentsForDocument(e);
+
+        for (const workspacePath of dependents) {
+          const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
+          if (!resolvedPath) {
+            return;
           }
-        );
+          const document = await vscode.workspace.openTextDocument(
+            resolvedPath
+          );
+          CheckDocument.push(document);
+        }
       }
     }, DEBOUNCE_TIMER.UPDATE_CLASS_NAME);
   }
