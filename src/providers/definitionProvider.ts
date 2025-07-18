@@ -122,48 +122,43 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
     // Add usages from dependent files
     const dependents =
       CssModuleDependencyCache.getDependentsForDocument(cssDoc);
-    await Promise.all(
-      dependents.map(async (filePath) => {
-        const doc = await vscode.workspace.openTextDocument(
-          resolveWorkspaceRelativePath(filePath)
-        );
-        const importMatches = await getAllImportModulePaths(doc);
+    for (const filePath of dependents) {
+      const doc = await vscode.workspace.openTextDocument(
+        resolveWorkspaceRelativePath(filePath)
+      );
+      const importMatches = await getAllImportModulePaths(doc);
 
-        await Promise.all(
-          importMatches.map(async (importMatch) => {
-            const [_, varName, importPath] = importMatch;
-            const resolvedPath = resolveImportPathWithAliases(doc, importPath);
-            if (resolvedPath !== cssPath) {
-              return;
-            }
+      await Promise.all(
+        importMatches.map(async (importMatch) => {
+          const [_, varName, importPath] = importMatch;
+          const resolvedPath = resolveImportPathWithAliases(doc, importPath);
+          if (resolvedPath !== cssPath) {
+            return;
+          }
 
-            const positions = await getDataOfClassName(varName, className, doc);
-
-            await Promise.all(
-              positions.map(async (positionData) => {
-                locations.push({
-                  originSelectionRange: new vscode.Range(
-                    wordRange.start,
-                    wordRange.end
-                  ),
-                  targetUri: doc.uri,
-                  targetRange: new vscode.Range(
-                    positionData.startPosition.line <= 0
-                      ? positionData.startPosition.translate(
-                          0,
-                          -positionData.startPosition.character
-                        )
-                      : positionData.startPosition.translate(-1, 0),
-                    positionData.startPosition.translate(1, 0)
-                  ),
-                  targetSelectionRange: positionData.range,
-                });
-              })
-            );
-          })
-        );
-      })
-    );
+          const positions = await getDataOfClassName(varName, className, doc);
+          for (const positionData of positions) {
+            locations.push({
+              originSelectionRange: new vscode.Range(
+                wordRange.start,
+                wordRange.end
+              ),
+              targetUri: doc.uri,
+              targetRange: new vscode.Range(
+                positionData.startPosition.line <= 0
+                  ? positionData.startPosition.translate(
+                      0,
+                      -positionData.startPosition.character
+                    )
+                  : positionData.startPosition.translate(-1, 0),
+                positionData.startPosition.translate(1, 0)
+              ),
+              targetSelectionRange: positionData.range,
+            });
+          }
+        })
+      );
+    }
 
     return locations.length > 0 ? locations : undefined;
   };

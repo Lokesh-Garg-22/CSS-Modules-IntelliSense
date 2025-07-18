@@ -223,7 +223,8 @@ export default class ClassNameCache {
     const content = document.getText();
     const root = safeParser(content);
     const classNames = new ClassNameDataMap();
-    const walkPromises: Promise<void>[] = [];
+    const rules: Parameters<Parameters<(typeof root)["walkRules"]>[0]>[0][] =
+      [];
 
     const handleRule = async (
       rule: Parameters<Parameters<(typeof root)["walkRules"]>[0]>[0]
@@ -267,10 +268,12 @@ export default class ClassNameCache {
     };
 
     root.walkRules((rule) => {
-      walkPromises.push(handleRule(rule));
+      rules.push(rule);
     });
 
-    await Promise.all(walkPromises);
+    for (const rule of rules) {
+      await handleRule(rule);
+    }
 
     Cache.classNameCache.setByKey(importPath, classNames);
     Cache.saveCache();

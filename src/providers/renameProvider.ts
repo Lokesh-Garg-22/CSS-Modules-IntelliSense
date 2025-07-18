@@ -30,33 +30,31 @@ const provideRenameEdits = async ({
   const files = CssModuleDependencyCache.getDependentsForDocument(document);
 
   // Update all the Javascript Files
-  await Promise.all(
-    files.map(async (file) => {
-      const doc = await vscode.workspace.openTextDocument(
-        resolveWorkspaceRelativePath(file)
+  for (const file of files) {
+    const doc = await vscode.workspace.openTextDocument(
+      resolveWorkspaceRelativePath(file)
+    );
+    const matches = await getAllImportModulePaths(doc);
+
+    matches.forEach(async (match) => {
+      const varName = match[1];
+      const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
+
+      if (resolvedPath !== filePath) {
+        return;
+      }
+
+      const classNamePositions = await getDataOfClassName(
+        varName,
+        oldClassName,
+        doc
       );
-      const matches = await getAllImportModulePaths(doc);
 
-      matches.forEach(async (match) => {
-        const varName = match[1];
-        const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
-
-        if (resolvedPath !== filePath) {
-          return;
-        }
-
-        const classNamePositions = await getDataOfClassName(
-          varName,
-          oldClassName,
-          doc
-        );
-
-        classNamePositions.forEach((classNamePosition) => {
-          edit.replace(doc.uri, classNamePosition.range, newName);
-        });
+      classNamePositions.forEach((classNamePosition) => {
+        edit.replace(doc.uri, classNamePosition.range, newName);
       });
-    })
-  );
+    });
+  }
 
   // Update the Css Module File
   const classNameData = await ClassNameCache.getClassNameData({
