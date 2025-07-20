@@ -7,6 +7,7 @@ suite("Extension Tests", () => {
     const ext = vscode.extensions.getExtension(`${publisher}.${extensionName}`);
     await ext?.activate();
     assert.ok(ext?.isActive);
+    assert.ok(false);
   });
 
   test("Run Command Reset Cache", async function () {
