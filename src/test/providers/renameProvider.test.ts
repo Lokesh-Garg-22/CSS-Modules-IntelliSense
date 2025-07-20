@@ -51,7 +51,7 @@ suite("Rename Provider Tests", function () {
     assert.ok(workspaceEdit, "Rename edits should be returned");
 
     console.log("workspaceEdit:", workspaceEdit);
-    console.log("workspaceEdit entries:", workspaceEdit.entries);
+    console.log("workspaceEdit entries:", workspaceEdit.entries());
 
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
@@ -119,7 +119,7 @@ suite("Rename Provider Tests", function () {
     assert.ok(workspaceEdit, "Rename edits should be returned");
 
     console.log("workspaceEdit:", workspaceEdit);
-    console.log("workspaceEdit entries:", workspaceEdit.entries);
+    console.log("workspaceEdit entries:", workspaceEdit.entries());
 
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
