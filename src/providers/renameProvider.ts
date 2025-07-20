@@ -51,8 +51,6 @@ const provideRenameEdits = async ({
       );
 
       classNamePositions.forEach((classNamePosition) => {
-        console.log("className S data:", classNamePosition);
-
         edit.replace(doc.uri, classNamePosition.range, newName);
       });
     });
@@ -65,8 +63,6 @@ const provideRenameEdits = async ({
   });
   if (classNameData) {
     classNameData.forEach((data) => {
-      console.log("className M data:", data);
-
       edit.replace(
         document.uri,
         new vscode.Range(data.range.start.translate(0, 1), data.range.end),
@@ -192,7 +188,12 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
 
     console.log("M4");
 
-    return await provideRenameEdits({ document, oldClassName, newName });
+    const t = await provideRenameEdits({ document, oldClassName, newName });
+
+    console.log("M5", t);
+    console.log("M6", t.entries());
+
+    return t;
   };
 
   prepareRename = async (
