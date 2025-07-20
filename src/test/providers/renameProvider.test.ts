@@ -81,7 +81,7 @@ suite("Rename Provider Tests", function () {
       }
     }
 
-    console.log("seenPaths:", seenPaths.entries());
+    console.log("seenPaths:", Array.from(seenPaths.entries()));
 
     // Final check: were all expected files seen?
     for (const expectedPath of expectedPaths) {
@@ -153,7 +153,7 @@ suite("Rename Provider Tests", function () {
       }
     }
 
-    console.log("seenPaths:", seenPaths.entries());
+    console.log("seenPaths:", Array.from(seenPaths.entries()));
 
     // Final check: were all expected files seen?
     for (const expectedPath of expectedPaths) {
