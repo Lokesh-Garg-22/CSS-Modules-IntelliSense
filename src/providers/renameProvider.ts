@@ -29,16 +29,12 @@ const provideRenameEdits = async ({
 
   const files = CssModuleDependencyCache.getDependentsForDocument(document);
 
-  console.log("files:", files);
-
   // Update all the Javascript Files
   for (const file of files) {
     const doc = await vscode.workspace.openTextDocument(
       resolveWorkspaceRelativePath(file)
     );
     const matches = await getAllImportModulePaths(doc);
-
-    console.log("matches:", matches);
 
     for (const match of matches) {
       const varName = match[1];
@@ -54,11 +50,8 @@ const provideRenameEdits = async ({
         doc
       );
 
-      console.log("classNamePositions:", classNamePositions);
-
       classNamePositions.forEach((classNamePosition) => {
         edit.replace(doc.uri, classNamePosition.range, newName);
-        console.log("edit s:", edit);
       });
     }
   }
@@ -77,8 +70,6 @@ const provideRenameEdits = async ({
       );
     });
   }
-
-  console.log("edit:", edit);
 
   return edit;
 };

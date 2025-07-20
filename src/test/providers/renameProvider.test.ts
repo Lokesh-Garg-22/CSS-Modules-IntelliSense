@@ -26,7 +26,6 @@ suite("Rename Provider Tests", function () {
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
 
-    await vscode.workspace.openTextDocument(sampleJsxPath);
     const doc = await vscode.workspace.openTextDocument(sampleScssPath);
     const editor = await vscode.window.showTextDocument(doc);
 
@@ -51,9 +50,6 @@ suite("Rename Provider Tests", function () {
 
     assert.ok(workspaceEdit, "Rename edits should be returned");
 
-    console.log("workspaceEdit:", workspaceEdit);
-    console.log("workspaceEdit entries:", workspaceEdit.entries());
-
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
       path.resolve("assets/fixtures/fixture-3/Sample.jsx"),
@@ -65,8 +61,6 @@ suite("Rename Provider Tests", function () {
     for (const [uri, edits] of changes) {
       const uriPath = uri.fsPath;
       seenPaths.add(uriPath);
-
-      console.log("uriPath:", uriPath);
 
       assert.ok(
         expectedPaths.includes(uriPath),
@@ -81,8 +75,6 @@ suite("Rename Provider Tests", function () {
         );
       }
     }
-
-    console.log("seenPaths:", Array.from(seenPaths.entries()));
 
     // Final check: were all expected files seen?
     for (const expectedPath of expectedPaths) {
@@ -99,7 +91,6 @@ suite("Rename Provider Tests", function () {
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
 
-    await vscode.workspace.openTextDocument(sampleScssPath);
     const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
     const editor = await vscode.window.showTextDocument(doc);
 
@@ -124,9 +115,6 @@ suite("Rename Provider Tests", function () {
 
     assert.ok(workspaceEdit, "Rename edits should be returned");
 
-    console.log("workspaceEdit:", workspaceEdit);
-    console.log("workspaceEdit entries:", workspaceEdit.entries());
-
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
       path.resolve("assets/fixtures/fixture-3/Sample.jsx"),
@@ -138,8 +126,6 @@ suite("Rename Provider Tests", function () {
     for (const [uri, edits] of changes) {
       const uriPath = uri.fsPath;
       seenPaths.add(uriPath);
-
-      console.log("uriPath:", uriPath);
 
       assert.ok(
         expectedPaths.includes(uriPath),
@@ -154,8 +140,6 @@ suite("Rename Provider Tests", function () {
         );
       }
     }
-
-    console.log("seenPaths:", Array.from(seenPaths.entries()));
 
     // Final check: were all expected files seen?
     for (const expectedPath of expectedPaths) {
