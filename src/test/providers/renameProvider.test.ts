@@ -50,6 +50,9 @@ suite("Rename Provider Tests", function () {
 
     assert.ok(workspaceEdit, "Rename edits should be returned");
 
+    console.log("workspaceEdit:", workspaceEdit);
+    console.log("workspaceEdit entries:", workspaceEdit.entries);
+
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
       path.resolve("assets/fixtures/fixture-3/Sample.jsx"),
@@ -80,7 +83,7 @@ suite("Rename Provider Tests", function () {
     for (const expectedPath of expectedPaths) {
       assert.ok(
         seenPaths.has(expectedPath),
-        `Expected rename to edit file: ${expectedPath}`
+        `Expected rename provider to edit file: ${expectedPath}`
       );
     }
   });
@@ -115,6 +118,9 @@ suite("Rename Provider Tests", function () {
 
     assert.ok(workspaceEdit, "Rename edits should be returned");
 
+    console.log("workspaceEdit:", workspaceEdit);
+    console.log("workspaceEdit entries:", workspaceEdit.entries);
+
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
       path.resolve("assets/fixtures/fixture-3/Sample.jsx"),
@@ -145,7 +151,7 @@ suite("Rename Provider Tests", function () {
     for (const expectedPath of expectedPaths) {
       assert.ok(
         seenPaths.has(expectedPath),
-        `Expected rename to edit file: ${expectedPath}`
+        `Expected rename provider to edit file: ${expectedPath}`
       );
     }
   });
