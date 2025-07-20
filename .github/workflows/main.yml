@@ -39,6 +39,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # Step to install xvfb
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
       - name: Compile Extension
         run: npm run pretest
 
@@ -50,6 +54,7 @@ jobs:
 
       - name: Run VS Code Extension Tests
         run: |
+          xvfb-run -a \
           ./node_modules/.bin/vscode-test \
             --vscode-version ${{ matrix.vscode_version }} \
             --extensionDevelopmentPath ./ \
