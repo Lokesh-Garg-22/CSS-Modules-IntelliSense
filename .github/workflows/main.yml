@@ -3,10 +3,10 @@ name: TESTS
 on:
   push:
     branches:
-      - d1
+      - main
   pull_request:
     branches:
-      - d1
+      - main
 
 jobs:
   test:
@@ -63,4 +63,4 @@ jobs:
             --launch-args "--disable-extensions" \
             --launch-args "--skip-getting-started"
         env:
-          TESTS: true # Indicate that we are in a CI environment
+          CI: true # Indicate that we are in a CI environment
