@@ -118,11 +118,15 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
 
     console.log("S5");
 
-    return await provideRenameEdits({
+    const t = await provideRenameEdits({
       document: cssDoc,
       oldClassName,
       newName,
     });
+
+    console.log("S6:", t);
+
+    return t;
   };
 
   prepareRename = async (
@@ -188,7 +192,11 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
 
     console.log("M4");
 
-    return await provideRenameEdits({ document, oldClassName, newName });
+    const t = await provideRenameEdits({ document, oldClassName, newName });
+
+    console.log("M5:", t);
+
+    return t;
   };
 
   prepareRename = async (
