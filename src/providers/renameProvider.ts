@@ -58,6 +58,7 @@ const provideRenameEdits = async ({
 
       classNamePositions.forEach((classNamePosition) => {
         edit.replace(doc.uri, classNamePosition.range, newName);
+        console.log("edit s:", edit);
       });
     });
   }
@@ -76,6 +77,8 @@ const provideRenameEdits = async ({
       );
     });
   }
+
+  console.log("edit:", edit);
 
   return edit;
 };
