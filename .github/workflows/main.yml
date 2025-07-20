@@ -59,7 +59,7 @@ jobs:
             --vscode-version ${{ matrix.vscode_version }} \
             --extensionDevelopmentPath ./ \
             --extensionTestsPath dist/test/extension.test.js \
-            --launch-args "${{ steps.test_workspace.outputs.WORKSPACE_PATH }}" \ # This opens the workspace
+            --launch-args "${{ steps.test_workspace.outputs.WORKSPACE_PATH }}" \
             --launch-args "--disable-extensions" \
             --launch-args "--skip-getting-started"
         env:
