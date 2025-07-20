@@ -137,6 +137,8 @@ suite("Rename Provider Tests", function () {
       const uriPath = uri.fsPath;
       seenPaths.add(uriPath);
 
+      console.log("uriPath:", uriPath);
+
       assert.ok(
         expectedPaths.includes(uriPath),
         `Unexpected file edited: ${uriPath}`
@@ -150,6 +152,8 @@ suite("Rename Provider Tests", function () {
         );
       }
     }
+
+    console.log("seenPaths:", seenPaths);
 
     // Final check: were all expected files seen?
     for (const expectedPath of expectedPaths) {
