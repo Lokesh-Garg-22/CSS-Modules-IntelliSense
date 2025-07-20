@@ -38,6 +38,8 @@ const provideRenameEdits = async ({
     );
     const matches = await getAllImportModulePaths(doc);
 
+    console.log("matches:", matches);
+
     matches.forEach(async (match) => {
       const varName = match[1];
       const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
@@ -51,6 +53,8 @@ const provideRenameEdits = async ({
         oldClassName,
         doc
       );
+
+      console.log("classNamePositions:", classNamePositions);
 
       classNamePositions.forEach((classNamePosition) => {
         edit.replace(doc.uri, classNamePosition.range, newName);
