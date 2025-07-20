@@ -48,10 +48,14 @@ export async function activate(context: vscode.ExtensionContext) {
         },
         async () => {
           try {
+            console.log("R1");
             await Cache.clearCache();
+            console.log("R2");
             await CssModuleDependencyCache.populateCacheFromWorkspace();
+            console.log("R3");
 
             vscode.window.showInformationMessage("Cache has been reset");
+            console.log("R4");
             return true;
           } catch (e) {
             if (e instanceof vscode.CancellationError) {
