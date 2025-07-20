@@ -1,0 +1,66 @@
+name: TESTS
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest # Or windows-latest, macos-latest
+
+    strategy:
+      fail-fast: false # Don't cancel other jobs if one fails
+      matrix:
+        vscode_version:
+          - 1.92.0
+          - 1.93.0
+          - 1.94.0
+          - 1.95.0
+          - 1.96.0
+          - 1.97.0
+          - 1.98.0
+          - 1.99.0
+          - 1.100.0
+          - 1.101.0
+          - 1.102.0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20" # Or your project's Node.js version
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Step to install xvfb
+      - name: Install xvfb
+        run: sudo apt-get update && sudo apt-get install -y xvfb
+
+      - name: Compile Extension
+        run: npm run pretest
+
+      # Define your test workspace folder relative to the repository root
+      # You can have multiple test workspaces and dynamically select them if needed
+      - name: Set test workspace folder
+        id: test_workspace
+        run: echo "WORKSPACE_PATH=." >> $GITHUB_OUTPUT # Adjust this path to your actual test workspace folder
+
+      - name: Run VS Code Extension Tests
+        run: |
+          xvfb-run -a \
+          ./node_modules/.bin/vscode-test \
+            --vscode-version ${{ matrix.vscode_version }} \
+            --extensionDevelopmentPath ./ \
+            --extensionTestsPath dist/test/extension.test.js \
+            --launch-args "${{ steps.test_workspace.outputs.WORKSPACE_PATH }}" \
+            --launch-args "--disable-extensions" \
+            --launch-args "--skip-getting-started"
+        env:
+          CI: true # Indicate that we are in a CI environment

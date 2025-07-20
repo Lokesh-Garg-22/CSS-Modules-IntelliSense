@@ -36,7 +36,7 @@ const provideRenameEdits = async ({
     );
     const matches = await getAllImportModulePaths(doc);
 
-    matches.forEach(async (match) => {
+    for (const match of matches) {
       const varName = match[1];
       const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
 
@@ -53,7 +53,7 @@ const provideRenameEdits = async ({
       classNamePositions.forEach((classNamePosition) => {
         edit.replace(doc.uri, classNamePosition.range, newName);
       });
-    });
+    }
   }
 
   // Update the Css Module File
