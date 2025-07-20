@@ -80,16 +80,12 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     position: vscode.Position,
     newName: string
   ) => {
-    console.log("S1");
-
     if (
       (await isPositionInString(document, position)) ||
       (await isPositionInComment(document, position))
     ) {
       return;
     }
-
-    console.log("S2");
 
     const wordRange = document.getWordRangeAtPosition(position, /\w+/);
     if (!wordRange) {
@@ -102,8 +98,6 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
       return;
     }
 
-    console.log("S3");
-
     const cssFilePath = resolveImportPathWithAliases(
       document,
       importModulePath
@@ -112,11 +106,7 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
       return;
     }
 
-    console.log("S4");
-
     const cssDoc = await vscode.workspace.openTextDocument(cssFilePath);
-
-    console.log("S5");
 
     return await provideRenameEdits({
       document: cssDoc,
@@ -162,8 +152,6 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
     position: vscode.Position,
     newName: string
   ) => {
-    console.log("M1");
-
     if (
       (await isPositionInString(document, position)) ||
       (await isPositionInComment(document, position)) ||
@@ -171,8 +159,6 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
     ) {
       return;
     }
-
-    console.log("M2");
 
     const wordRange = document.getWordRangeAtPosition(
       position,
@@ -182,18 +168,9 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
       return;
     }
 
-    console.log("M3");
-
     const oldClassName = document.getText(wordRange).replace(/^\./, "");
 
-    console.log("M4");
-
-    const t = await provideRenameEdits({ document, oldClassName, newName });
-
-    console.log("M5", t);
-    console.log("M6", t.entries());
-
-    return t;
+    return await provideRenameEdits({ document, oldClassName, newName });
   };
 
   prepareRename = async (
