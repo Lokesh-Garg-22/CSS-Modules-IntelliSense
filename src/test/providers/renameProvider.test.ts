@@ -26,6 +26,7 @@ suite("Rename Provider Tests", function () {
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
 
+    await vscode.workspace.openTextDocument(sampleJsxPath);
     const doc = await vscode.workspace.openTextDocument(sampleScssPath);
     const editor = await vscode.window.showTextDocument(doc);
 
@@ -98,6 +99,7 @@ suite("Rename Provider Tests", function () {
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
 
+    await vscode.workspace.openTextDocument(sampleScssPath);
     const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
     const editor = await vscode.window.showTextDocument(doc);
 
