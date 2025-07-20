@@ -1,4 +1,4 @@
-name: CI
+name: Tests
 
 on:
   push:
@@ -17,7 +17,8 @@ jobs:
       matrix:
         vscode_version:
           # - 1.92.0
-          - 1.93.1
+          - 1.93
+          - 1.93.0
           # - 1.94.0
           # - 1.95.0
           # - 1.96.0
