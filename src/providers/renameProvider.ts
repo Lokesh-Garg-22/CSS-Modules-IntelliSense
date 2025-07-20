@@ -29,6 +29,8 @@ const provideRenameEdits = async ({
 
   const files = CssModuleDependencyCache.getDependentsForDocument(document);
 
+  console.log("files:", files);
+
   // Update all the Javascript Files
   for (const file of files) {
     const doc = await vscode.workspace.openTextDocument(
