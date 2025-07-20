@@ -40,7 +40,7 @@ const provideRenameEdits = async ({
 
     console.log("matches:", matches);
 
-    matches.forEach(async (match) => {
+    for (const match of matches) {
       const varName = match[1];
       const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
 
@@ -60,7 +60,7 @@ const provideRenameEdits = async ({
         edit.replace(doc.uri, classNamePosition.range, newName);
         console.log("edit s:", edit);
       });
-    });
+    }
   }
 
   // Update the Css Module File
