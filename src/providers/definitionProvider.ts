@@ -47,14 +47,6 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ): Promise<vscode.LocationLink[] | undefined> => {
-    // Skip strings and comments early
-    if (
-      (await isPositionInString(document, position)) ||
-      (await isPositionInComment(document, position))
-    ) {
-      return;
-    }
-
     const wordRange = document.getWordRangeAtPosition(position, /\w+/);
     if (!wordRange) {
       return;
@@ -68,6 +60,14 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
 
     const cssPath = resolveImportPathWithAliases(document, importModulePath);
     if (!fs.existsSync(cssPath)) {
+      return;
+    }
+
+    // Skip strings and comments
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position))
+    ) {
       return;
     }
 
@@ -90,14 +90,6 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
     cssDoc: vscode.TextDocument,
     position: vscode.Position
   ): Promise<vscode.LocationLink[] | undefined> => {
-    if (
-      (await isPositionInString(cssDoc, position)) ||
-      (await isPositionInComment(cssDoc, position)) ||
-      !isDocumentModule(cssDoc)
-    ) {
-      return;
-    }
-
     const wordRange = cssDoc.getWordRangeAtPosition(position, /\.[\w-]+/);
     if (!wordRange) {
       return;
@@ -106,6 +98,14 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
     const className = cssDoc.getText(wordRange).slice(1); // remove leading dot
     const cssPath = resolveImportPathWithAliases(cssDoc, cssDoc.uri.path);
     if (!fs.existsSync(cssPath)) {
+      return;
+    }
+
+    if (
+      (await isPositionInString(cssDoc, position)) ||
+      (await isPositionInComment(cssDoc, position)) ||
+      !isDocumentModule(cssDoc)
+    ) {
       return;
     }
 

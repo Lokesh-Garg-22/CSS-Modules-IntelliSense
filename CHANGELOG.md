@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased] – 2025-07-XX
 
+### Fixed
+
+- Inefficiencies in `isPositionInComment` and `isPositionInString` that caused
+  slow parsing in large files.
+
 ## [0.1.2] – 2025-07-18
 
 ### Added

@@ -1,39 +1,24 @@
 import * as vscode from "vscode";
 import * as vsctm from "vscode-textmate";
-import getGrammar from "./getGrammar";
+import getGrammarTokens from "./getGrammarTokens";
 
 const isPositionInComment = async (
   document: vscode.TextDocument,
   position: vscode.Position
 ): Promise<boolean> => {
-  const grammar = await getGrammar(document);
-  if (!grammar) {
-    return false;
-  }
+  let tokens = await getGrammarTokens(document, position);
+  return isCharInComment(tokens, position.character);
+};
 
-  let prevState = vsctm.INITIAL;
-  let tokens: vsctm.IToken[] = [];
-  for (let i = 0; i <= position.line; i++) {
-    const lineText = document.lineAt(i).text;
-    const tokenized = grammar.tokenizeLine(lineText, prevState);
-    prevState = tokenized.ruleStack;
-    tokens = tokenized.tokens;
-  }
-
-  for (let id = 0; id < tokens.length; id++) {
-    const token = tokens[id];
+const isCharInComment = (tokens: vsctm.IToken[], char: number): boolean => {
+  for (const token of tokens) {
     if (
-      (id === tokens.length - 1 &&
-        position.character >= token.startIndex &&
-        position.character <= token.endIndex) ||
-      (position.character >= token.startIndex &&
-        position.character < token.endIndex)
+      (char >= token.startIndex && char < token.endIndex) ||
+      (char === token.endIndex && token === tokens[tokens.length - 1])
     ) {
-      // Check if token is in a Comment
       return token.scopes.some((scope) => scope.includes("comment"));
     }
   }
-
   return false;
 };
 

@@ -19,13 +19,6 @@ export default class CompletionItemProvider
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
-    if (
-      (await isPositionInString(document, position)) ||
-      (await isPositionInComment(document, position))
-    ) {
-      return;
-    }
-
     const importModulePath = getImportModulePath(document, position);
     if (!importModulePath) {
       return;
@@ -37,6 +30,14 @@ export default class CompletionItemProvider
     if (!classNames) {
       return;
     }
+
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position))
+    ) {
+      return;
+    }
+
     return new vscode.CompletionList(
       classNames.map((name) => {
         const item = new vscode.CompletionItem(

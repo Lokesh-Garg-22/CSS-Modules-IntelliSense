@@ -27,18 +27,18 @@ const getAllClassNames = async (
     const className = match[1];
     const pos = document.positionAt(match.index);
 
-    // Skip matches inside strings or comments
-    if (
-      (await isPositionInString(document, pos)) ||
-      (await isPositionInComment(document, pos))
-    ) {
-      continue;
-    }
-
     // Reject nested usage like temp.styles.class
     if (
       pos.character > 0 &&
       document.lineAt(pos.line).text[pos.character - 1].match(/[.\w]$/)
+    ) {
+      continue;
+    }
+
+    // Skip matches inside strings or comments
+    if (
+      (await isPositionInString(document, pos)) ||
+      (await isPositionInComment(document, pos))
     ) {
       continue;
     }

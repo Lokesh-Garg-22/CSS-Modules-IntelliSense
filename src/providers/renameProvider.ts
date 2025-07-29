@@ -80,13 +80,6 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     position: vscode.Position,
     newName: string
   ) => {
-    if (
-      (await isPositionInString(document, position)) ||
-      (await isPositionInComment(document, position))
-    ) {
-      return;
-    }
-
     const wordRange = document.getWordRangeAtPosition(position, /\w+/);
     if (!wordRange) {
       return;
@@ -106,6 +99,13 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
       return;
     }
 
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position))
+    ) {
+      return;
+    }
+
     const cssDoc = await vscode.workspace.openTextDocument(cssFilePath);
 
     return await provideRenameEdits({
@@ -119,13 +119,6 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
-    if (
-      (await isPositionInString(document, position)) ||
-      (await isPositionInComment(document, position))
-    ) {
-      return;
-    }
-
     const wordRange = document.getWordRangeAtPosition(position, /\w+/);
     if (!wordRange) {
       return;
@@ -134,6 +127,13 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     const className = document.getText(wordRange);
     const importModulePath = getImportModulePath(document, position);
     if (!importModulePath) {
+      return;
+    }
+
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position))
+    ) {
       return;
     }
 
@@ -152,19 +152,19 @@ export class ModulesRenameProvider implements vscode.RenameProvider {
     position: vscode.Position,
     newName: string
   ) => {
-    if (
-      (await isPositionInString(document, position)) ||
-      (await isPositionInComment(document, position)) ||
-      !isDocumentModule(document)
-    ) {
-      return;
-    }
-
     const wordRange = document.getWordRangeAtPosition(
       position,
       /\.[a-zA-Z0-9_-]+/
     );
     if (!wordRange) {
+      return;
+    }
+
+    if (
+      (await isPositionInString(document, position)) ||
+      (await isPositionInComment(document, position)) ||
+      !isDocumentModule(document)
+    ) {
       return;
     }
 
