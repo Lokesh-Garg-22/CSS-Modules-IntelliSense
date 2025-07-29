@@ -66,9 +66,6 @@ const getGrammarTokens = async (
     };
     lineCache.set(i, newCache);
 
-    // console.log("new cache:", i);
-    // console.log("grammarCache:", grammarCache);
-
     if (i === position.line) {
       return result.tokens;
     }
