@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.3] – 2025-07-30
+
+### Fixed
+
+- Inefficiencies in `isPositionInComment` and `isPositionInString` that caused
+  slow parsing in large files.
+
 ## [0.1.2] – 2025-07-18
 
 ### Added
@@ -90,6 +97,7 @@ All notable changes to this project will be documented in this file.
 - Go-to-Definition support for `styles.className` references.
 - Autocompletion of class names in JavaScript and TypeScript.
 
+[0.1.3]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.0.5...v0.1.0

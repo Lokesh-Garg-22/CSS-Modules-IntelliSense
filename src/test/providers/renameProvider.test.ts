@@ -80,7 +80,7 @@ suite("Rename Provider Tests", function () {
     for (const expectedPath of expectedPaths) {
       assert.ok(
         seenPaths.has(expectedPath),
-        `Expected rename to edit file: ${expectedPath}`
+        `Expected rename provider to edit file: ${expectedPath}`
       );
     }
   });
@@ -145,7 +145,7 @@ suite("Rename Provider Tests", function () {
     for (const expectedPath of expectedPaths) {
       assert.ok(
         seenPaths.has(expectedPath),
-        `Expected rename to edit file: ${expectedPath}`
+        `Expected rename provider to edit file: ${expectedPath}`
       );
     }
   });
