@@ -19,7 +19,7 @@ export default class CompletionItemProvider
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
-    const importModulePath = getImportModulePath(document, position);
+    const importModulePath = await getImportModulePath(document, position);
     if (!importModulePath) {
       return;
     }

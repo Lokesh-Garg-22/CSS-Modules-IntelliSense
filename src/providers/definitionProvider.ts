@@ -53,7 +53,7 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     const className = document.getText(wordRange);
-    const importModulePath = getImportModulePath(document, position);
+    const importModulePath = await getImportModulePath(document, position);
     if (!importModulePath) {
       return;
     }

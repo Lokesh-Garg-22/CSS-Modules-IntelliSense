@@ -86,7 +86,7 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     }
 
     const oldClassName = document.getText(wordRange);
-    const importModulePath = getImportModulePath(document, position);
+    const importModulePath = await getImportModulePath(document, position);
     if (!importModulePath) {
       return;
     }
@@ -125,7 +125,7 @@ export class ScriptsRenameProvider implements vscode.RenameProvider {
     }
 
     const className = document.getText(wordRange);
-    const importModulePath = getImportModulePath(document, position);
+    const importModulePath = await getImportModulePath(document, position);
     if (!importModulePath) {
       return;
     }
