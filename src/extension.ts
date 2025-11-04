@@ -13,6 +13,7 @@ import Cache from "./libs/cache";
 import loadCaches from "./libs/loadCaches";
 import CheckDocument from "./libs/checkDocument";
 import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
+import { registerTriggerOnEdit } from "./libs/processConfig";
 
 export async function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
@@ -33,9 +34,9 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidOpenTextDocument((document) =>
     CheckDocument.push(document)
   );
-  vscode.workspace.onDidChangeTextDocument((e) =>
-    CheckDocument.push(e.document)
-  );
+  registerTriggerOnEdit((e) => {
+    CheckDocument.push(e.document);
+  });
 
   // Commands
   const resetCacheCommand = vscode.commands.registerCommand(

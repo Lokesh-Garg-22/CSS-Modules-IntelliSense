@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { MESSAGES } from "../config";
+import { CONFIGURATION_KEY, CONFIGURATIONS, MESSAGES } from "../config";
 import ClassNameCache from "../libs/classNameCache";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
@@ -9,9 +9,9 @@ import getImportModulePath from "../utils/getImportModulePath";
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
 {
-  static config = vscode.workspace.getConfiguration("cssModulesIntellisense");
+  static config = vscode.workspace.getConfiguration(CONFIGURATION_KEY);
   static aliasMap = CompletionItemProvider.config.get<Record<string, string>>(
-    "aliases",
+    CONFIGURATIONS.ALIASES,
     {}
   );
 

@@ -1,9 +1,10 @@
 import * as vscode from "vscode";
 import * as path from "path";
+import { CONFIGURATION_KEY, CONFIGURATIONS } from "../config";
 
 // Load alias configuration from workspace settings
-const config = vscode.workspace.getConfiguration("cssModulesIntellisense");
-const aliasMap = config.get<Record<string, string>>("aliases", {});
+const config = vscode.workspace.getConfiguration(CONFIGURATION_KEY);
+const aliasMap = config.get<Record<string, string>>(CONFIGURATIONS.ALIASES, {});
 
 /**
  * Resolves an import path by checking configured aliases and falling back to relative resolution from the current document.

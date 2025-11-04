@@ -57,6 +57,16 @@
     "configuration": {
       "title": "CSS Modules Intellisense Extension",
       "properties": {
+        "cssModulesIntellisense.processOnEdit": {
+          "type": "boolean",
+          "description": "Process the file on Edit.",
+          "default": true
+        },
+        "cssModulesIntellisense.processOnSave": {
+          "type": "boolean",
+          "description": "Process the file on save.",
+          "default": true
+        },
         "cssModulesIntellisense.aliases": {
           "type": "object",
           "description": "Define path aliases (like webpack or tsconfig).",
