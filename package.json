@@ -3,6 +3,7 @@
   "displayName": "CSS/SCSS Modules IntelliSense",
   "description": "Linter and tooling for CSS Modules with support for SCSS, LESS, Go-to-Definition, and Rename in JS/TS files.",
   "version": "0.1.4",
+  "icon": "icon.png",
   "publisher": "lokesh-garg",
   "repository": {
     "type": "git",
