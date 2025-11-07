@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
-import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import ClassNameCache from "./classNameCache";
+import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import { registerTriggerOnEdit, registerTriggerOnSave } from "./processConfig";
 
 const loadCaches = () => {

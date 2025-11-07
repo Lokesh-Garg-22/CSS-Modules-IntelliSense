@@ -6,13 +6,13 @@ import {
   MESSAGES,
   SUPPORTED_LANGS,
 } from "../config";
-import ClassNameCache from "./classNameCache";
 import {
   getWorkspaceRelativeImportPath,
   resolveImportPathWithAliases,
 } from "../utils/getPath";
-import getAllImportModulePaths from "../utils/getAllImportModulePaths";
 import getAllClassNames from "../utils/getAllClassNames";
+import getAllImportModulePaths from "../utils/getAllImportModulePaths";
+import ClassNameCache from "./classNameCache";
 
 /**
  * Class responsible for analyzing script documents to validate usage of CSS Modules.

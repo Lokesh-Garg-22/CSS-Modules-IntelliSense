@@ -1,7 +1,7 @@
+import * as fs from "fs";
+import * as path from "path";
 import * as vsctm from "vscode-textmate";
 import * as oniguruma from "vscode-oniguruma";
-import * as path from "path";
-import * as fs from "fs";
 
 let registry: vsctm.Registry;
 

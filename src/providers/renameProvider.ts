@@ -1,18 +1,18 @@
-import * as vscode from "vscode";
 import * as fs from "fs";
-import ClassNameCache from "../libs/classNameCache";
-import isPositionInString from "../utils/isPositionInString";
-import isPositionInComment from "../utils/isPositionInComment";
+import * as vscode from "vscode";
 import {
   getWorkspaceRelativeImportPath,
   resolveImportPathWithAliases,
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
-import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 import isDocumentModule from "../utils/isDocumentModule";
-import getAllImportModulePaths from "../utils/getAllImportModulePaths";
-import getImportModulePath from "../utils/getImportModulePath";
+import isPositionInString from "../utils/isPositionInString";
 import getDataOfClassName from "../utils/getDataOfClassName";
+import getImportModulePath from "../utils/getImportModulePath";
+import isPositionInComment from "../utils/isPositionInComment";
+import getAllImportModulePaths from "../utils/getAllImportModulePaths";
+import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
+import ClassNameCache from "../libs/classNameCache";
 
 const provideRenameEdits = async ({
   document,

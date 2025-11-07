@@ -2,16 +2,17 @@ import * as fs from "fs";
 import * as vscode from "vscode";
 import safeParser from "postcss-safe-parser";
 import selectorParser from "postcss-selector-parser";
-import Cache, { ClassNameData, ClassNameDataMap } from "./cache";
+import { DEBOUNCE_TIMER, SUPPORTED_MODULES } from "../config";
+import Cache from "./cache";
 import {
   getWorkspaceRelativeUriPath,
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
-import { DEBOUNCE_TIMER, SUPPORTED_MODULES } from "../config";
+import { sanitizeCssInput } from "../utils/sanitizeCssInput";
 import isPositionInComment from "../utils/isPositionInComment";
 import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import CheckDocument from "./checkDocument";
-import { sanitizeCssInput } from "../utils/sanitizeCssInput";
+import { ClassNameRange, ClassNameRangeMap } from "../types/cache";
 
 /**
  * A utility class to extract and cache class names from CSS Module files.
@@ -137,7 +138,7 @@ export default class ClassNameCache {
   static async getClassNameDataFromImportPath(
     className: string,
     importPath: string
-  ): Promise<ClassNameData[] | undefined> {
+  ): Promise<ClassNameRange[] | undefined> {
     if (Cache.classNameCache.hasByKey(importPath)) {
       return Cache.classNameCache.getByKey(importPath)?.get(className);
     } else {
@@ -209,7 +210,7 @@ export default class ClassNameCache {
    */
   static async extractAndCacheClassNames(
     importPath: string
-  ): Promise<ClassNameDataMap | undefined> {
+  ): Promise<ClassNameRangeMap | undefined> {
     const filePath = resolveWorkspaceRelativePath(importPath);
     if (!fs.existsSync(filePath)) {
       Cache.classNameCache.deleteByKey(importPath); // Clean up stale entries
@@ -224,7 +225,7 @@ export default class ClassNameCache {
     const content = document.getText();
     const sanitizedContent = sanitizeCssInput(content);
     const root = safeParser(sanitizedContent);
-    const classNames = new ClassNameDataMap();
+    const classNames = new ClassNameRangeMap();
     const rules: Parameters<Parameters<(typeof root)["walkRules"]>[0]>[0][] =
       [];
 
@@ -257,7 +258,7 @@ export default class ClassNameCache {
               new vscode.Position(ruleStart.line - 1, ruleStart.column - 1)
             ) + sourceIndex;
 
-          const data: ClassNameData = {
+          const data: ClassNameRange = {
             range: new vscode.Range(
               document.positionAt(selectorOffsetInDoc),
               document.positionAt(selectorOffsetInDoc + value.length + 1) // +1 for "."

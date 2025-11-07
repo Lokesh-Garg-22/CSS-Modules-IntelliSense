@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
 import * as path from "path";
+import * as vscode from "vscode";
 import { CONFIGURATION_KEY, CONFIGURATIONS } from "../config";
 
 // Load alias configuration from workspace settings

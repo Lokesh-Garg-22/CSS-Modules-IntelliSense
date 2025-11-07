@@ -53,3 +53,5 @@ export const CONFIGURATIONS = {
   PROCESS_ON_EDIT: "processOnEdit",
   PROCESS_ON_SAVE: "processOnSave",
 };
+
+export const CSS_MODULES_CACHE_FILENAME = "cache.json";

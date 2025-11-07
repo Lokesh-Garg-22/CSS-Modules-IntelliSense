@@ -2,9 +2,9 @@ import * as vscode from "vscode";
 import { CONFIGURATION_KEY, CONFIGURATIONS, MESSAGES } from "../config";
 import ClassNameCache from "../libs/classNameCache";
 import isPositionInString from "../utils/isPositionInString";
+import getImportModulePath from "../utils/getImportModulePath";
 import isPositionInComment from "../utils/isPositionInComment";
 import { getWorkspaceRelativeImportPath } from "../utils/getPath";
-import getImportModulePath from "../utils/getImportModulePath";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
