@@ -11,6 +11,7 @@ import { DEBOUNCE_TIMER, SUPPORTED_MODULES } from "../config";
 import isPositionInComment from "../utils/isPositionInComment";
 import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import CheckDocument from "./checkDocument";
+import { sanitizeCssInput } from "../utils/sanitizeCssInput";
 
 /**
  * A utility class to extract and cache class names from CSS Module files.
@@ -221,7 +222,8 @@ export default class ClassNameCache {
     }
 
     const content = document.getText();
-    const root = safeParser(content);
+    const sanitizedContent = sanitizeCssInput(content);
+    const root = safeParser(sanitizedContent);
     const classNames = new ClassNameDataMap();
     const rules: Parameters<Parameters<(typeof root)["walkRules"]>[0]>[0][] =
       [];
