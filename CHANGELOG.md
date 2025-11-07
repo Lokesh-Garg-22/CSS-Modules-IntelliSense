@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased] – 2025-08-XX
 
+### Added
+
+- Configuration options to control when file processing is triggered:
+  - **processOnEdit** — runs processing when editing files.
+  - **processOnSave** — runs processing when saving files.
+
+### Fixed
+
+- Class names defined after comments were not being recognized.  
+  **Example:**
+
+  ```scss
+  // Working on it
+  .container {
+    width: 100%;
+  }
+  ```
+
 ## [0.1.3] – 2025-07-30
 
 ### Fixed
