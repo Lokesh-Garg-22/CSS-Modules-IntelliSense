@@ -1,6 +1,6 @@
+import * as path from "path";
 import * as assert from "assert";
 import * as vscode from "vscode";
-import * as path from "path";
 import getRootPath from "../utils/getRootPath";
 import { extensionName, publisher } from "../config";
 

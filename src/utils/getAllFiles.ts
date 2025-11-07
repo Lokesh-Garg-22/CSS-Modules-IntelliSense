@@ -3,9 +3,13 @@ import {
   getModuleFileRegex,
   getScriptFileRegex,
 } from "./getFileExtensionRegex";
+import { CONFIGURATION_KEY, CONFIGURATIONS } from "../config";
 
-const config = vscode.workspace.getConfiguration("cssModulesIntellisense");
-const blacklistPatterns = config.get<string[]>("blacklistPatterns", []);
+const config = vscode.workspace.getConfiguration(CONFIGURATION_KEY);
+const blacklistPatterns = config.get<string[]>(
+  CONFIGURATIONS.BLACKLIST_PATTERNS,
+  []
+);
 
 export const getAllScriptFiles = async () => {
   const includePattern = `**/*.{${getScriptFileRegex()}}`;

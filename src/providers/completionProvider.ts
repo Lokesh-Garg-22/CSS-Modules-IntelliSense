@@ -1,17 +1,17 @@
 import * as vscode from "vscode";
-import { MESSAGES } from "../config";
+import { CONFIGURATION_KEY, CONFIGURATIONS, MESSAGES } from "../config";
 import ClassNameCache from "../libs/classNameCache";
 import isPositionInString from "../utils/isPositionInString";
+import getImportModulePath from "../utils/getImportModulePath";
 import isPositionInComment from "../utils/isPositionInComment";
 import { getWorkspaceRelativeImportPath } from "../utils/getPath";
-import getImportModulePath from "../utils/getImportModulePath";
 
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
 {
-  static config = vscode.workspace.getConfiguration("cssModulesIntellisense");
+  static config = vscode.workspace.getConfiguration(CONFIGURATION_KEY);
   static aliasMap = CompletionItemProvider.config.get<Record<string, string>>(
-    "aliases",
+    CONFIGURATIONS.ALIASES,
     {}
   );
 
@@ -19,7 +19,7 @@ export default class CompletionItemProvider
     document: vscode.TextDocument,
     position: vscode.Position
   ) => {
-    const importModulePath = getImportModulePath(document, position);
+    const importModulePath = await getImportModulePath(document, position);
     if (!importModulePath) {
       return;
     }

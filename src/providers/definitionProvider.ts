@@ -1,16 +1,16 @@
-import * as vscode from "vscode";
 import * as fs from "fs";
+import * as vscode from "vscode";
 import {
   resolveImportPathWithAliases,
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
+import isDocumentModule from "../utils/isDocumentModule";
+import getDataOfClassName from "../utils/getDataOfClassName";
 import isPositionInString from "../utils/isPositionInString";
 import isPositionInComment from "../utils/isPositionInComment";
-import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
-import isDocumentModule from "../utils/isDocumentModule";
 import getImportModulePath from "../utils/getImportModulePath";
 import getAllImportModulePaths from "../utils/getAllImportModulePaths";
-import getDataOfClassName from "../utils/getDataOfClassName";
+import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 import ClassNameCache from "../libs/classNameCache";
 
 const definitionProviderForModules = async (
@@ -53,7 +53,7 @@ export class ScriptDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     const className = document.getText(wordRange);
-    const importModulePath = getImportModulePath(document, position);
+    const importModulePath = await getImportModulePath(document, position);
     if (!importModulePath) {
       return;
     }

@@ -45,3 +45,13 @@ export const DEBOUNCE_TIMER = {
 };
 
 export const MAX_CHECK_DOCUMENT_QUEUE_LENGTH = 100;
+
+export const CONFIGURATION_KEY = "cssModulesIntellisense";
+export const CONFIGURATIONS = {
+  ALIASES: "aliases",
+  BLACKLIST_PATTERNS: "blacklistPatterns",
+  PROCESS_ON_EDIT: "processOnEdit",
+  PROCESS_ON_SAVE: "processOnSave",
+};
+
+export const CSS_MODULES_CACHE_FILENAME = "cache.json";

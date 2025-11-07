@@ -1,16 +1,13 @@
 import * as vscode from "vscode";
-import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import ClassNameCache from "./classNameCache";
+import CssModuleDependencyCache from "./cssModuleDependencyCache";
+import { registerTriggerOnEdit, registerTriggerOnSave } from "./processConfig";
 
 const loadCaches = () => {
   // ClassNameCache
-  vscode.workspace.onDidSaveTextDocument((e) =>
-    ClassNameCache.updateClassNameCache(e)
-  );
+  registerTriggerOnSave((e) => ClassNameCache.updateClassNameCache(e));
 
-  vscode.workspace.onDidChangeTextDocument((e) =>
-    ClassNameCache.updateClassNameCache(e.document)
-  );
+  registerTriggerOnEdit((e) => ClassNameCache.updateClassNameCache(e.document));
 
   vscode.workspace.onDidDeleteFiles((e) =>
     e.files.forEach((uri) => ClassNameCache.extractFromUri(uri))
@@ -23,7 +20,7 @@ const loadCaches = () => {
     }
   });
 
-  vscode.workspace.onDidSaveTextDocument((e) =>
+  registerTriggerOnSave((e) =>
     CssModuleDependencyCache.updateCacheForDocument({ document: e })
   );
 
@@ -31,7 +28,7 @@ const loadCaches = () => {
     CssModuleDependencyCache.updateCacheForDocument({ document: e })
   );
 
-  vscode.workspace.onDidChangeTextDocument((e) =>
+  registerTriggerOnEdit((e) =>
     CssModuleDependencyCache.updateCacheForDocument({ document: e.document })
   );
 

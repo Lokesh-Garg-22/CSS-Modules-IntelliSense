@@ -1,12 +1,12 @@
 import * as fs from "fs";
 import * as vscode from "vscode";
 import Cache from "./cache";
+import { SUPPORTED_LANGS } from "../config";
 import {
   getWorkspaceRelativeImportPath,
   getWorkspaceRelativeUriPath,
   resolveImportPathWithAliases,
 } from "../utils/getPath";
-import { SUPPORTED_LANGS } from "../config";
 import { getAllScriptFiles } from "../utils/getAllFiles";
 import { getModuleFileRegex } from "../utils/getFileExtensionRegex";
 

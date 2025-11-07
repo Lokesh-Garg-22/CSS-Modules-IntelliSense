@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import isPositionInString from "./isPositionInString";
 import isPositionInComment from "./isPositionInComment";
-import { ClassNameData } from "../type";
+import { ClassNameData } from "../types/classNameData";
 
 /**
  * Extracts all valid usages of CSS Module class names accessed via a given variable name

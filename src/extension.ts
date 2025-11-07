@@ -1,18 +1,19 @@
 import * as vscode from "vscode";
 import { SUPPORTED_LANGS, SUPPORTED_MODULES } from "./config";
-import {
-  ModulesRenameProvider,
-  ScriptsRenameProvider,
-} from "./providers/renameProvider";
+import Cache from "./libs/cache";
+import loadCaches from "./libs/loadCaches";
+import CheckDocument from "./libs/checkDocument";
+import { registerTriggerOnEdit } from "./libs/processConfig";
+import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
 import CompletionItemProvider from "./providers/completionProvider";
 import {
   ScriptDefinitionProvider,
   ModuleDefinitionProvider as ModuleDefinitionProvider,
 } from "./providers/definitionProvider";
-import Cache from "./libs/cache";
-import loadCaches from "./libs/loadCaches";
-import CheckDocument from "./libs/checkDocument";
-import CssModuleDependencyCache from "./libs/cssModuleDependencyCache";
+import {
+  ModulesRenameProvider,
+  ScriptsRenameProvider,
+} from "./providers/renameProvider";
 
 export async function activate(context: vscode.ExtensionContext) {
   const diagnosticCollection =
@@ -33,9 +34,9 @@ export async function activate(context: vscode.ExtensionContext) {
   vscode.workspace.onDidOpenTextDocument((document) =>
     CheckDocument.push(document)
   );
-  vscode.workspace.onDidChangeTextDocument((e) =>
-    CheckDocument.push(e.document)
-  );
+  registerTriggerOnEdit((e) => {
+    CheckDocument.push(e.document);
+  });
 
   // Commands
   const resetCacheCommand = vscode.commands.registerCommand(

@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import getImportModuleVarName from "./getImportModuleVarName";
 import { getModuleFileRegex } from "./getFileExtensionRegex";
+import isPositionInComment from "./isPositionInComment";
+import isPositionInString from "./isPositionInString";
 
 /**
  * Retrieves the import path of a CSS Module associated with the variable
@@ -19,10 +21,10 @@ import { getModuleFileRegex } from "./getFileExtensionRegex";
  * @param position - The current cursor position.
  * @returns The matched CSS module import path, or `undefined` if not found.
  */
-const getImportModulePath = (
+const getImportModulePath = async (
   document: vscode.TextDocument,
   position: vscode.Position
-): string | undefined => {
+): Promise<string | undefined> => {
   const varName = getImportModuleVarName(document, position);
   if (!varName) {
     return;
@@ -31,13 +33,31 @@ const getImportModulePath = (
   // Match imports like: import styles from './file.module.css'
   const importRegex = new RegExp(
     `import\\s+${varName}\\s+from\\s+['"]([^'"]+\\.module\\.(${getModuleFileRegex()}))['"]`,
-    "s"
+    "sg"
   );
 
   const fullText = document.getText();
-  const match = fullText.match(importRegex);
+  let finalMatch: RegExpExecArray | undefined;
+  let match: RegExpExecArray | null;
+  while ((match = importRegex.exec(fullText))) {
+    if (
+      match?.index &&
+      ((await isPositionInString(
+        document,
+        document.positionAt(match?.index)
+      )) ||
+        (await isPositionInComment(
+          document,
+          document.positionAt(match?.index)
+        )))
+    ) {
+      continue;
+    }
 
-  return match?.[1];
+    finalMatch = match;
+  }
+
+  return finalMatch?.[1];
 };
 
 export default getImportModulePath;
