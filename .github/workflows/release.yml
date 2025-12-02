@@ -1,0 +1,302 @@
+name: Release and Publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 'Version type (major, minor, patch)'
+        required: true
+        default: 'patch'
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Backup current state
+        id: backup
+        run: |
+          # Store current branch and commit
+          echo "ORIGINAL_BRANCH=$(git rev-parse --abbrev-ref HEAD)" >> $GITHUB_OUTPUT
+          echo "ORIGINAL_COMMIT=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+          
+          # Backup current files
+          cp package.json package.json.backup
+          cp CHANGELOG.md CHANGELOG.md.backup
+          echo "Backup created successfully"
+      
+      - name: Check for Unreleased section
+        id: check_unreleased
+        run: |
+          if ! grep -q "## \[Unreleased\]" CHANGELOG.md; then
+            echo "ERROR: No [Unreleased] section found in CHANGELOG.md"
+            echo "Please add changes to an [Unreleased] section before releasing"
+            exit 1
+          fi
+          echo "Unreleased section found"
+      
+      - name: Calculate new version
+        id: version
+        run: |
+          # Get current version from package.json
+          CURRENT_VERSION=$(node -p "require('./package.json').version")
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Calculate new version based on input
+          IFS='.' read -r major minor patch <<< "$CURRENT_VERSION"
+          
+          case "${{ github.event.inputs.version_type }}" in
+            major)
+              NEW_VERSION="$((major + 1)).0.0"
+              ;;
+            minor)
+              NEW_VERSION="${major}.$((minor + 1)).0"
+              ;;
+            patch)
+              NEW_VERSION="${major}.${minor}.$((patch + 1))"
+              ;;
+          esac
+          
+          echo "NEW_VERSION=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "CURRENT_VERSION=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "New version will be: $NEW_VERSION"
+      
+      - name: Extract Unreleased changes
+        id: extract_changes
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          TODAY=$(date +%Y-%m-%d)
+          
+          # Extract content between [Unreleased] and the next version section
+          CHANGES=$(awk '/## \[Unreleased\]/,/## \[.*\]/ {
+            if (/## \[Unreleased\]/) next;
+            if (/## \[.*\]/) exit;
+            print
+          }' CHANGELOG.md | sed '/^$/d' | head -c 5000)
+          
+          # Check if changes exist
+          if [ -z "$(echo "$CHANGES" | xargs)" ]; then
+            echo "ERROR: No changes found in [Unreleased] section"
+            exit 1
+          fi
+          
+          # Create formatted release body with header
+          echo "# CSS Modules IntelliSense ${NEW_VERSION} – ${TODAY}" > /tmp/release_body.txt
+          echo "" >> /tmp/release_body.txt
+          echo "$CHANGES" >> /tmp/release_body.txt
+          
+          # Also save just the changes for git tag
+          echo "$CHANGES" > /tmp/release_notes.txt
+          
+          echo "Extracted changes successfully"
+          echo "Release body:"
+          cat /tmp/release_body.txt
+      
+      - name: Update CHANGELOG.md
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          CURRENT_VERSION="${{ steps.version.outputs.CURRENT_VERSION }}"
+          TODAY=$(date +%Y-%m-%d)
+          
+          # Create updated changelog
+          awk -v new_version="$NEW_VERSION" -v today="$TODAY" -v current_version="$CURRENT_VERSION" '
+            /## \[Unreleased\]/ {
+              print "## [Unreleased]\n"
+              print "## [" new_version "] – " today
+              next
+            }
+            { print }
+          ' CHANGELOG.md > CHANGELOG.md.tmp
+          
+          # Add new version link at the bottom
+          echo "" >> CHANGELOG.md.tmp
+          echo "[${NEW_VERSION}]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v${CURRENT_VERSION}...v${NEW_VERSION}" >> CHANGELOG.md.tmp
+          
+          mv CHANGELOG.md.tmp CHANGELOG.md
+          
+          echo "CHANGELOG.md updated successfully"
+      
+      - name: Update package.json version
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          npm version $NEW_VERSION --no-git-tag-version
+          echo "package.json updated to version $NEW_VERSION"
+      
+      - name: Compile and lint in pretest
+        id: pretest
+        run: npm run pretest
+      
+      - name: Run tests
+        id: test
+        run: |
+          # Install xvfb for headless testing
+          sudo apt-get update && sudo apt-get install -y xvfb
+          
+          # Run tests with xvfb
+          xvfb-run -a npm test || {
+            echo "Tests failed!"
+            exit 1
+          }
+      
+      - name: Package extension
+        id: package
+        run: |
+          # Install vsce globally
+          npm install -g @vscode/vsce
+          
+          # Package the extension
+          vsce package
+          
+          # Get the package filename
+          PACKAGE_FILE=$(ls *.vsix | head -n 1)
+          echo "PACKAGE_FILE=$PACKAGE_FILE" >> $GITHUB_OUTPUT
+          echo "Extension packaged: $PACKAGE_FILE"
+      
+      - name: Commit changes
+        id: commit
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          
+          git add package.json package-lock.json CHANGELOG.md
+          git commit -m "chore: release v${NEW_VERSION}"
+          
+          echo "Changes committed"
+      
+      - name: Create and push tag
+        id: tag
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          
+          # Create annotated tag with release notes
+          git tag -a "v${NEW_VERSION}" -F /tmp/release_notes.txt
+          
+          # Push commit and tag
+          git push origin HEAD:main
+          git push origin "v${NEW_VERSION}"
+          
+          echo "Tag v${NEW_VERSION} created and pushed"
+      
+      - name: Publish to VS Code Marketplace
+        id: publish
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: |
+          if [ -z "$VSCE_PAT" ]; then
+            echo "ERROR: VSCE_PAT secret not found"
+            echo "Please add your Visual Studio Marketplace Personal Access Token as a secret named VSCE_PAT"
+            exit 1
+          fi
+          
+          # Publish to marketplace
+          vsce publish -p $VSCE_PAT
+          
+          echo "Extension published to VS Code Marketplace successfully!"
+      
+      - name: Create GitHub Release
+        id: github_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.version.outputs.NEW_VERSION }}
+          release_name: CSS Modules IntelliSense ${{ steps.version.outputs.NEW_VERSION }}
+          body_path: /tmp/release_body.txt
+          draft: false
+          prerelease: false
+      
+      - name: Upload VSIX to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.github_release.outputs.upload_url }}
+          asset_path: ./${{ steps.package.outputs.PACKAGE_FILE }}
+          asset_name: ${{ steps.package.outputs.PACKAGE_FILE }}
+          asset_content_type: application/vsix
+      
+      # Rollback steps - these run if any previous step fails
+      - name: Rollback on failure
+        if: failure()
+        run: |
+          echo "⚠️ Workflow failed! Rolling back changes..."
+          
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          ORIGINAL_COMMIT="${{ steps.backup.outputs.ORIGINAL_COMMIT }}"
+          
+          # Restore backup files if they exist
+          if [ -f "package.json.backup" ]; then
+            mv package.json.backup package.json
+            echo "✓ Restored package.json"
+          fi
+          
+          if [ -f "CHANGELOG.md.backup" ]; then
+            mv CHANGELOG.md.backup CHANGELOG.md
+            echo "✓ Restored CHANGELOG.md"
+          fi
+          
+          # Reset git if commit was made
+          if [ "${{ steps.commit.outcome }}" == "success" ]; then
+            git reset --hard $ORIGINAL_COMMIT
+            echo "✓ Reset git to original commit"
+          fi
+          
+          # Delete tag if it was created
+          if [ "${{ steps.tag.outcome }}" == "success" ] && [ -n "$NEW_VERSION" ]; then
+            git tag -d "v${NEW_VERSION}" 2>/dev/null || true
+            git push origin ":refs/tags/v${NEW_VERSION}" 2>/dev/null || true
+            echo "✓ Deleted tag v${NEW_VERSION}"
+          fi
+          
+          # Force push to reset remote if push succeeded
+          if [ "${{ steps.tag.outcome }}" == "success" ]; then
+            git push origin HEAD:main --force
+            echo "✓ Force pushed to reset remote branch"
+          fi
+          
+          echo "❌ Rollback completed. All changes have been reverted."
+          echo "Please fix the errors and try again."
+          exit 1
+      
+      - name: Cleanup backup files
+        if: success()
+        run: |
+          rm -f package.json.backup CHANGELOG.md.backup
+          echo "✓ Cleanup completed successfully"
+      
+      - name: Success summary
+        if: success()
+        run: |
+          NEW_VERSION="${{ steps.version.outputs.NEW_VERSION }}"
+          echo "🎉 Release v${NEW_VERSION} completed successfully!"
+          echo ""
+          echo "✓ CHANGELOG.md updated"
+          echo "✓ package.json version bumped"
+          echo "✓ Git tag created and pushed"
+          echo "✓ Published to VS Code Marketplace"
+          echo "✓ GitHub Release created"
+          echo ""
+          echo "View the release at: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/releases/tag/v${NEW_VERSION}"
