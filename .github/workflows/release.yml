@@ -92,11 +92,14 @@ jobs:
           TODAY=$(date +%Y-%m-%d)
           
           # Extract content between [Unreleased] and the next version section
-          CHANGES=$(awk '/## \[Unreleased\]/,/## \[.*\]/ {
+          CHANGES=$(awk 'BEGIN { foundLine=0 }
+            /## \[Unreleased\]/,/## \[\]/ {
             if (/## \[Unreleased\]/) next;
+            if (/^$/ && !foundLine) { next; }
+            if (/.+/) { foundLine=1; }
             if (/## \[.*\]/) exit;
             print
-          }' CHANGELOG.md | sed '/^$/d' | head -c 5000)
+          }' CHANGELOG.md | head -c 5000)
           
           # Check if changes exist
           if [ -z "$(echo "$CHANGES" | xargs)" ]; then
