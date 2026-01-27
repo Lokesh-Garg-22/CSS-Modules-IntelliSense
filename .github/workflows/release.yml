@@ -223,6 +223,26 @@ jobs:
           
           echo "Extension published to VS Code Marketplace successfully!"
       
+      - name: Publish to Open VSX
+        id: publish_ovsx
+        continue-on-error: true
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: |
+          if [ -z "$OVSX_PAT" ]; then
+            echo "WARNING: OVSX_PAT secret not found"
+            echo "Skipping Open VSX publish. To publish to Open VSX, add your Personal Access Token as a secret named OVSX_PAT"
+            exit 0
+          fi
+          
+          # Install ovsx if not already installed
+          npm install -g ovsx
+          
+          # Publish to Open VSX
+          ovsx publish -p $OVSX_PAT
+          
+          echo "Extension published to Open VSX successfully!"
+      
       - name: Create GitHub Release
         id: github_release
         uses: actions/create-release@v1
