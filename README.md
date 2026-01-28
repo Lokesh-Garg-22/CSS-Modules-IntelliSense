@@ -33,6 +33,16 @@ and **navigation features** for projects using CSS Modules — including
 
 ---
 
+## 📦 Installation
+
+Get the extension from your preferred marketplace:
+
+- [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=lokesh-garg.css-scss-modules-intellisense)
+
+- [Open VSX Registry](https://open-vsx.org/extension/lokesh-garg/css-scss-modules-intellisense)
+
+---
+
 ## ✅ Supported File Types
 
 - `.module.css`
