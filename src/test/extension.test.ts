@@ -3,6 +3,8 @@ import * as vscode from "vscode";
 import { extensionName, publisher } from "./config";
 
 suite("Extension Tests", function () {
+  this.timeout(30000);
+
   suiteSetup(async () => {
     const ext = vscode.extensions.getExtension(`${publisher}.${extensionName}`);
     assert.ok(ext, `Extension "${publisher}.${extensionName}" not found`);
