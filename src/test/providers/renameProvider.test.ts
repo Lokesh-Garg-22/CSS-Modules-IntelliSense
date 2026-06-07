@@ -27,7 +27,6 @@ suite("Rename Provider Tests", function () {
       ?.activate();
 
     const doc = await vscode.workspace.openTextDocument(sampleScssPath);
-    const editor = await vscode.window.showTextDocument(doc);
 
     const lineNum = 0;
     const lineText = doc.lineAt(lineNum).text;
@@ -92,7 +91,6 @@ suite("Rename Provider Tests", function () {
       ?.activate();
 
     const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
-    const editor = await vscode.window.showTextDocument(doc);
 
     const lineNum = 3;
     const lineText = doc.lineAt(lineNum).text;

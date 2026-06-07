@@ -60,7 +60,7 @@ export default class CheckDocument {
   static push(document: vscode.TextDocument): number {
     if (this.isQueueEmpty()) {
       const length = this.documentQueue.push(document);
-      this.checkNextDocument();
+      this.checkNextDocument().catch(console.error);
       return length;
     }
     while (this.documentQueue.length >= MAX_CHECK_DOCUMENT_QUEUE_LENGTH) {
@@ -109,7 +109,7 @@ export default class CheckDocument {
   static setDebounceTimer(): void {
     clearTimeout(this.debounceTimerId);
     this.debounceTimerId = setTimeout(() => {
-      this.checkNextDocument();
+      this.checkNextDocument().catch(console.error);
     }, DEBOUNCE_TIMER.CHECK_DOCUMENT);
   }
 
@@ -137,7 +137,6 @@ export default class CheckDocument {
       return;
     }
 
-    const text = document.getText();
     const diagnostics: vscode.Diagnostic[] = [];
     const importMatches = await getAllImportModulePaths(document);
 

@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 import { getModuleFileRegex } from "./getFileExtensionRegex";
 import isPositionInComment from "./isPositionInComment";
 import isPositionInString from "./isPositionInString";

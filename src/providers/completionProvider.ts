@@ -9,7 +9,6 @@ import { getWorkspaceRelativeImportPath } from "../utils/getPath";
 export default class CompletionItemProvider
   implements vscode.CompletionItemProvider
 {
-
   provideCompletionItems = async (
     document: vscode.TextDocument,
     position: vscode.Position

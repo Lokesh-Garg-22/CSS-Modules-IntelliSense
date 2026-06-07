@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 
 /**
  * Extracts the variable name used to reference a CSS module import
@@ -23,7 +23,7 @@ const getImportModuleVarName = (
 
   // Match patterns like "styles.className", but NOT "temp.styles.className"
   const match = prefix.match(/(\w+)\.([\w-]*)$/);
-  if (match && typeof match.index !== "undefined") {
+  if (typeof match?.index !== "undefined") {
     if (match.index > 0 && prefix[match.index - 1].match(/[.\w]$/)) {
       return;
     }

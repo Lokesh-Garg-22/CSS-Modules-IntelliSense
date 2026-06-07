@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
-import * as vsctm from "vscode-textmate";
+import type * as vscode from "vscode";
+import type * as vsctm from "vscode-textmate";
 import getGrammarTokens from "./getGrammarTokens";
 
 const isPositionInString = async (

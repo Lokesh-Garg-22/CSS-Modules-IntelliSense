@@ -12,7 +12,7 @@ import { sanitizeCssInput } from "../utils/sanitizeCssInput";
 import isPositionInComment from "../utils/isPositionInComment";
 import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import CheckDocument from "./checkDocument";
-import { ClassNameRange, ClassNameRangeMap } from "../types/cache";
+import { type ClassNameRange, ClassNameRangeMap } from "../types/cache";
 
 /**
  * A utility class to extract and cache class names from CSS Module files.
@@ -34,23 +34,25 @@ export default class ClassNameCache {
   static async updateClassNameCache(e: vscode.TextDocument) {
     const importPath = getWorkspaceRelativeUriPath(e.uri);
     clearTimeout(this.ClassNameCacheDebounceIdMap[importPath]);
-    this.ClassNameCacheDebounceIdMap[importPath] = setTimeout(async () => {
-      await ClassNameCache.extractFromUri(e.uri);
+    this.ClassNameCacheDebounceIdMap[importPath] = setTimeout(() => {
+      (async () => {
+        await ClassNameCache.extractFromUri(e.uri);
 
-      if (SUPPORTED_MODULES.includes(e.languageId)) {
-        const dependents = CssModuleDependencyCache.getDependentsForDocument(e);
+        if (SUPPORTED_MODULES.includes(e.languageId)) {
+          const dependents =
+            CssModuleDependencyCache.getDependentsForDocument(e);
 
-        for (const workspacePath of dependents) {
-          const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
-          if (!resolvedPath) {
-            continue;
+          for (const workspacePath of dependents) {
+            const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
+            if (!resolvedPath) {
+              continue;
+            }
+            const document =
+              await vscode.workspace.openTextDocument(resolvedPath);
+            CheckDocument.push(document);
           }
-          const document = await vscode.workspace.openTextDocument(
-            resolvedPath
-          );
-          CheckDocument.push(document);
         }
-      }
+      })().catch(console.error);
     }, DEBOUNCE_TIMER.UPDATE_CLASS_NAME);
   }
 
@@ -182,11 +184,11 @@ export default class ClassNameCache {
   ): Promise<string[] | undefined> {
     if (Cache.classNameCache.hasByKey(importPath)) {
       return Array.from(
-        Cache.classNameCache.getByKey(importPath)?.keys() || []
+        Cache.classNameCache.getByKey(importPath)?.keys() ?? []
       );
     } else {
       return Array.from(
-        (await this.extractAndCacheClassNames(importPath))?.keys() || []
+        (await this.extractAndCacheClassNames(importPath))?.keys() ?? []
       );
     }
   }
@@ -279,7 +281,7 @@ export default class ClassNameCache {
     }
 
     Cache.classNameCache.setByKey(importPath, classNames);
-    Cache.saveCache();
+    Cache.saveCache().catch(console.error);
     return classNames;
   }
 }

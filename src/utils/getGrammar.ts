@@ -1,5 +1,5 @@
-import * as vscode from "vscode";
-import * as vsctm from "vscode-textmate";
+import type * as vscode from "vscode";
+import type * as vsctm from "vscode-textmate";
 import getRegistry from "./getRegistry";
 
 const grammarMap = new Map<String, vsctm.IGrammar | null>();

@@ -21,7 +21,7 @@ export default class CssModuleDependencyCache {
       await this.updateCacheForDocument({ uri });
     }
 
-    Cache.saveCache();
+    Cache.saveCache().catch(console.error);
   }
 
   /**
@@ -66,13 +66,11 @@ export default class CssModuleDependencyCache {
       const sourceFile = getWorkspaceRelativeUriPath(document.uri);
 
       let dependents = Cache.modulePathCache.getByKey(relativeImport);
-      if (!dependents) {
-        dependents = Cache.modulePathCache.createKey(relativeImport);
-      }
+      dependents ??= Cache.modulePathCache.createKey(relativeImport);
       dependents.addByKey(sourceFile);
     }
 
-    Cache.saveCache();
+    Cache.saveCache().catch(console.error);
   }
 
   /**
@@ -84,7 +82,7 @@ export default class CssModuleDependencyCache {
     return (
       Cache.modulePathCache
         .getByKey(getWorkspaceRelativeUriPath(document.uri))
-        ?.toKeyArray() || []
+        ?.toKeyArray() ?? []
     );
   }
 

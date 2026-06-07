@@ -5,7 +5,7 @@ CSS/SCSS Modules IntelliSense VS Code extension.
 
 ## Directory Structure
 
-```
+```txt
 css-modules-intellisense/
 ├── .github/                    # GitHub-specific files
 │   └── workflows/              # GitHub Actions workflows
