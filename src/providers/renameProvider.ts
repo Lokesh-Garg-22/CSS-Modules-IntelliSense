@@ -6,10 +6,12 @@ import {
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
 import isDocumentModule from "../utils/isDocumentModule";
-import isPositionInString from "../utils/isPositionInString";
+import {
+  isPositionInString,
+  isPositionInComment,
+} from "../utils/isPositionInScope";
 import getDataOfClassName from "../utils/getDataOfClassName";
 import getImportModulePath from "../utils/getImportModulePath";
-import isPositionInComment from "../utils/isPositionInComment";
 import getAllImportModulePaths from "../utils/getAllImportModulePaths";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
 import ClassNameCache from "../libs/classNameCache";

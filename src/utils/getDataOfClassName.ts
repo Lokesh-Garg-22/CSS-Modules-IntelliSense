@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
-import isPositionInString from "./isPositionInString";
-import isPositionInComment from "./isPositionInComment";
+import { isPositionInString, isPositionInComment } from "./isPositionInScope";
 import { type ClassNameData } from "../types/classNameData";
 
 /**

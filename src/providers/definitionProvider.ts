@@ -6,8 +6,10 @@ import {
 } from "../utils/getPath";
 import isDocumentModule from "../utils/isDocumentModule";
 import getDataOfClassName from "../utils/getDataOfClassName";
-import isPositionInString from "../utils/isPositionInString";
-import isPositionInComment from "../utils/isPositionInComment";
+import {
+  isPositionInString,
+  isPositionInComment,
+} from "../utils/isPositionInScope";
 import getImportModulePath from "../utils/getImportModulePath";
 import getAllImportModulePaths from "../utils/getAllImportModulePaths";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";

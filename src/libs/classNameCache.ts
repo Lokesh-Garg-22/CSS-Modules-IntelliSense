@@ -9,7 +9,7 @@ import {
   resolveWorkspaceRelativePath,
 } from "../utils/getPath";
 import { sanitizeCssInput } from "../utils/sanitizeCssInput";
-import isPositionInComment from "../utils/isPositionInComment";
+import { isPositionInComment } from "../utils/isPositionInScope";
 import CssModuleDependencyCache from "./cssModuleDependencyCache";
 import CheckDocument from "./checkDocument";
 import { type ClassNameRange, ClassNameRangeMap } from "../types/cache";

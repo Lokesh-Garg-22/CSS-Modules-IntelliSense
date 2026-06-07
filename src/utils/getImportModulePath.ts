@@ -1,8 +1,7 @@
 import type * as vscode from "vscode";
 import getImportModuleVarName from "./getImportModuleVarName";
 import { getModuleFileRegex } from "./getFileExtensionRegex";
-import isPositionInComment from "./isPositionInComment";
-import isPositionInString from "./isPositionInString";
+import { isPositionInString, isPositionInComment } from "./isPositionInScope";
 
 /**
  * Retrieves the import path of a CSS Module associated with the variable
