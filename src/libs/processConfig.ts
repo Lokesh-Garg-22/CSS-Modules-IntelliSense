@@ -1,5 +1,6 @@
 import * as vscode from "vscode";
 import { CONFIGURATION_KEY, CONFIGURATIONS } from "../config";
+import { getVsConfig } from "./vsConfig";
 
 function registerConditionalListener<T>(
   event: vscode.Event<T>,
@@ -9,8 +10,7 @@ function registerConditionalListener<T>(
   let disposable: vscode.Disposable | undefined;
 
   const applyConfig = () => {
-    const config = vscode.workspace.getConfiguration(CONFIGURATION_KEY);
-    const enabled = config.get<boolean>(settingKey, true);
+    const enabled = getVsConfig().get<boolean>(settingKey, true);
 
     if (enabled && !disposable) {
       disposable = event(func);

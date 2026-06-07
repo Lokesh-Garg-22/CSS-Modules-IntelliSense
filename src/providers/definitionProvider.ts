@@ -6,8 +6,10 @@ import {
 } from "../utils/getPath";
 import isDocumentModule from "../utils/isDocumentModule";
 import getDataOfClassName from "../utils/getDataOfClassName";
-import isPositionInString from "../utils/isPositionInString";
-import isPositionInComment from "../utils/isPositionInComment";
+import {
+  isPositionInString,
+  isPositionInComment,
+} from "../utils/isPositionInScope";
 import getImportModulePath from "../utils/getImportModulePath";
 import getAllImportModulePaths from "../utils/getAllImportModulePaths";
 import CssModuleDependencyCache from "../libs/cssModuleDependencyCache";
@@ -96,7 +98,7 @@ export class ModuleDefinitionProvider implements vscode.DefinitionProvider {
     }
 
     const className = cssDoc.getText(wordRange).slice(1); // remove leading dot
-    const cssPath = resolveImportPathWithAliases(cssDoc, cssDoc.uri.path);
+    const cssPath = resolveImportPathWithAliases(cssDoc, cssDoc.uri.fsPath);
     if (!fs.existsSync(cssPath)) {
       return;
     }

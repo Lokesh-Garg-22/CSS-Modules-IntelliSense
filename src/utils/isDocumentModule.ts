@@ -1,4 +1,4 @@
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 import { SUPPORTED_MODULE_EXTENSIONS, SUPPORTED_MODULES } from "../config";
 
 /**

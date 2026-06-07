@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
+    "types": ["node", "mocha"],
     "lib": ["ES2020"],
     "outDir": "dist",
     "rootDir": "src",

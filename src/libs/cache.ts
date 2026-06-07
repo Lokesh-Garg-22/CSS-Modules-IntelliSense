@@ -1,9 +1,9 @@
 import * as fs from "fs";
 import * as path from "path";
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 import { CSS_MODULES_CACHE_FILENAME, DEBOUNCE_TIMER } from "../config";
 import {
-  CacheJsonObject,
+  type CacheJsonObject,
   ClassNameCache,
   ClassNameRangeMap,
   ModulePathCache,
@@ -79,7 +79,7 @@ export default class Cache {
   static async saveCache() {
     clearTimeout(this.saveCacheDebounceId);
     this.saveCacheDebounceId = setTimeout(() => {
-      this._saveCache();
+      this._saveCache().catch(console.error);
     }, DEBOUNCE_TIMER.CACHE);
   }
 
@@ -142,10 +142,10 @@ export default class Cache {
       const parsed: { [K in keyof CacheJsonObject]?: CacheJsonObject[K] } =
         JSON.parse(raw);
 
-      this.pathMapCache.setArray(parsed.pathMapCache || []);
+      this.pathMapCache.setArray(parsed.pathMapCache ?? []);
 
       this.modulePathCache.setMap(
-        Object.entries(parsed.modulePathCache || {}).map(
+        Object.entries(parsed.modulePathCache ?? {}).map(
           ([key, valueArray]) => [
             key,
             new ModulePathCacheSet(this.pathMapCache, valueArray),
@@ -154,7 +154,7 @@ export default class Cache {
       );
 
       this.classNameCache.setMap(
-        Object.entries(parsed.classNameCache || {}).map(([key, value]) => [
+        Object.entries(parsed.classNameCache ?? {}).map(([key, value]) => [
           key,
           new ClassNameRangeMap(Object.entries(value)),
         ])

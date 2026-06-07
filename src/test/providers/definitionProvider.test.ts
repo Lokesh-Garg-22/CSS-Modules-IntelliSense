@@ -3,6 +3,7 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import getRootPath from "../utils/getRootPath";
 import { rangeToString } from "../utils/utils";
+import { extensionName, publisher } from "../config";
 
 suite("Definition Provider Tests", function () {
   this.timeout(60000);
@@ -16,13 +17,25 @@ suite("Definition Provider Tests", function () {
     "assets/fixtures/fixture-2/Sample.module.scss"
   );
 
+  let jsxDoc: vscode.TextDocument;
+  let scssDoc: vscode.TextDocument;
+
+  suiteSetup(async () => {
+    await vscode.extensions
+      .getExtension(`${publisher}.${extensionName}`)
+      ?.activate();
+
+    jsxDoc = await vscode.workspace.openTextDocument(sampleJsxPath);
+    scssDoc = await vscode.workspace.openTextDocument(sampleScssPath);
+  });
+
   suiteTeardown(async () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
   test("Go-to-Definition jumps to .container in SCSS", async () => {
-    const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
-    await vscode.window.showTextDocument(doc);
+    await vscode.window.showTextDocument(jsxDoc);
+    const doc = jsxDoc;
     const pos = new vscode.Position(3, doc.lineAt(3).text.indexOf("container"));
     const locations: vscode.LocationLink[] =
       await vscode.commands.executeCommand(
@@ -65,8 +78,8 @@ suite("Definition Provider Tests", function () {
   });
 
   test("Go-to-Definition jumps to .container in Script", async () => {
-    const doc = await vscode.workspace.openTextDocument(sampleScssPath);
-    await vscode.window.showTextDocument(doc);
+    await vscode.window.showTextDocument(scssDoc);
+    const doc = scssDoc;
     const pos = new vscode.Position(0, doc.lineAt(0).text.indexOf("container"));
     const locations: vscode.LocationLink[] =
       await vscode.commands.executeCommand(
@@ -82,7 +95,7 @@ suite("Definition Provider Tests", function () {
 
     await Promise.all(
       locations.map(async (defLoc) => {
-        if (defLoc.targetUri.path.endsWith(sampleJsxPath)) {
+        if (defLoc.targetUri.fsPath === sampleJsxPath) {
           assert.ok(
             defLoc.targetSelectionRange,
             `Expected Target Selection Range for .container`
@@ -108,7 +121,7 @@ suite("Definition Provider Tests", function () {
               expectedRange
             )}, but got ${rangeToString(defLoc.targetSelectionRange)}`
           );
-        } else if (defLoc.targetUri.path.endsWith(sampleScssPath)) {
+        } else if (defLoc.targetUri.fsPath === sampleScssPath) {
           assert.ok(
             defLoc.targetSelectionRange,
             `Expected Target Selection Range for .container`
@@ -133,6 +146,10 @@ suite("Definition Provider Tests", function () {
             `Expected Range of \`container\` to be ${rangeToString(
               expectedRange
             )}, but got ${rangeToString(defLoc.targetSelectionRange)}`
+          );
+        } else {
+          assert.fail(
+            `Unexpected definition location: ${defLoc.targetUri.fsPath}`
           );
         }
       })

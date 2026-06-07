@@ -1,7 +1,6 @@
-import * as vscode from "vscode";
+import type * as vscode from "vscode";
 import { getModuleFileRegex } from "./getFileExtensionRegex";
-import isPositionInComment from "./isPositionInComment";
-import isPositionInString from "./isPositionInString";
+import { isPositionInString, isPositionInComment } from "./isPositionInScope";
 
 /**
  * Extracts all import statements from a VS Code document that import CSS Modules.

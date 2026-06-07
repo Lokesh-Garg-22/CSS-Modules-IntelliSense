@@ -21,9 +21,9 @@ export async function activate(context: vscode.ExtensionContext) {
   CheckDocument.diagnosticCollection = diagnosticCollection;
 
   Cache.context = context;
-  const loaded = Cache.loadCache();
+  const loaded = await Cache.loadCache();
   if (!loaded) {
-    CssModuleDependencyCache.populateCacheFromWorkspace();
+    await CssModuleDependencyCache.populateCacheFromWorkspace();
   }
   loadCaches();
 

@@ -5,7 +5,7 @@ CSS/SCSS Modules IntelliSense VS Code extension.
 
 ## Directory Structure
 
-```
+```txt
 css-modules-intellisense/
 ├── .github/                    # GitHub-specific files
 │   └── workflows/              # GitHub Actions workflows
@@ -33,7 +33,8 @@ css-modules-intellisense/
 │   │   ├── classNameCache.ts   # Class name caching
 │   │   ├── cssModuleDependencyCache.ts
 │   │   ├── loadCaches.ts       # Cache initialization
-│   │   └── processConfig.ts    # Configuration processing
+│   │   ├── processConfig.ts    # Configuration processing
+│   │   └── vsConfig.ts         # VS Code configuration helpers
 │   ├── providers/              # Language feature providers
 │   │   ├── completionProvider.ts    # Auto-completion
 │   │   ├── definitionProvider.ts    # Go-to-definition
@@ -55,8 +56,7 @@ css-modules-intellisense/
 │   │   ├── getPath.ts
 │   │   ├── getRegistry.ts
 │   │   ├── isDocumentModule.ts
-│   │   ├── isPositionInComment.ts
-│   │   ├── isPositionInString.ts
+│   │   ├── isPositionInScope.ts
 │   │   └── sanitizeCssInput.ts
 │   ├── config.ts               # Extension configuration
 │   └── extension.ts            # Extension entry point
@@ -70,6 +70,7 @@ css-modules-intellisense/
 │   └── scss.tmLanguage.json
 ├── .editorconfig               # Editor configuration
 ├── .gitignore                  # Git ignore rules
+├── .prettierrc                 # Prettier formatting rules
 ├── .markdownlint.json          # Markdown linting rules
 ├── .vscode-test.mjs            # VS Code test configuration
 ├── .vscodeignore               # Files to exclude from extension package
@@ -120,6 +121,7 @@ Static resources including test fixtures and extension icons
 ## Configuration Files
 
 - `.editorconfig` - Code style consistency
+- `.prettierrc` - Code formatting rules
 - `tsconfig.json` - TypeScript compiler settings
 - `eslint.config.mjs` - Linting rules
 - `package.json` - Extension metadata and dependencies
