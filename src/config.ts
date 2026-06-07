@@ -52,6 +52,9 @@ export const CONFIGURATIONS = {
   BLACKLIST_PATTERNS: "blacklistPatterns",
   PROCESS_ON_EDIT: "processOnEdit",
   PROCESS_ON_SAVE: "processOnSave",
+  CLASS_NAME_CACHE_SIZE: "classNameCacheSize",
 };
+
+export const DEFAULT_CLASS_NAME_CACHE_SIZE = 5;
 
 export const CSS_MODULES_CACHE_FILENAME = "cache.json";

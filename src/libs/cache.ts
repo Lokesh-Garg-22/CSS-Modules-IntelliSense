@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import type * as vscode from "vscode";
 import { CSS_MODULES_CACHE_FILENAME, DEBOUNCE_TIMER } from "../config";
+import { getClassNameCacheSize } from "./vsConfig";
 import {
   type CacheJsonObject,
   ClassNameCache,
@@ -24,7 +25,9 @@ export default class Cache {
    * Cache mapping from imported CSS module paths (relative to workspace)
    * to the set of document paths that import them.
    */
-  static classNameCache = new ClassNameCache(this.pathMapCache, { max: 3 });
+  static classNameCache = new ClassNameCache(this.pathMapCache, {
+    max: getClassNameCacheSize(),
+  });
 
   private static _context: vscode.ExtensionContext;
   /**

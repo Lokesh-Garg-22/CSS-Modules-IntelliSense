@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- `cssModulesIntellisense.classNameCacheSize` setting to configure the LRU
+  class name cache size (default: 5).
+
 ### Fixed
 
 - Minor Bugs
