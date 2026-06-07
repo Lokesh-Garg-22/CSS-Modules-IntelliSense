@@ -83,6 +83,12 @@
             "**/*.test.ts",
             "**/*.spec.tsx"
           ]
+        },
+        "cssModulesIntellisense.classNameCacheSize": {
+          "type": "number",
+          "description": "Maximum number of CSS module files to keep in the class name cache (LRU). Increase for projects with many CSS module files.",
+          "default": 5,
+          "minimum": 1
         }
       }
     },
