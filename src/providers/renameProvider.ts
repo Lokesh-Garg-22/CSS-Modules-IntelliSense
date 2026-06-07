@@ -41,7 +41,7 @@ const provideRenameEdits = async ({
       const resolvedPath = resolveImportPathWithAliases(doc, match[2]);
 
       if (resolvedPath !== filePath) {
-        return;
+        continue;
       }
 
       const classNamePositions = await getDataOfClassName(

@@ -1,10 +1,6 @@
 import * as path from "path";
 import * as vscode from "vscode";
-import { CONFIGURATION_KEY, CONFIGURATIONS } from "../config";
-
-// Load alias configuration from workspace settings
-const config = vscode.workspace.getConfiguration(CONFIGURATION_KEY);
-const aliasMap = config.get<Record<string, string>>(CONFIGURATIONS.ALIASES, {});
+import { getAliasMap } from "../libs/vsConfig";
 
 /**
  * Resolves an import path by checking configured aliases and falling back to relative resolution from the current document.
@@ -24,6 +20,7 @@ export const resolveImportPathWithAliases = (
 
   const workspaceRoot = workspaceFolders[0].uri.fsPath;
   let resolvedPath = importPath;
+  const aliasMap = getAliasMap();
 
   // Replace alias with absolute path if match is found
   for (const [alias, aliasRelativePath] of Object.entries(aliasMap)) {

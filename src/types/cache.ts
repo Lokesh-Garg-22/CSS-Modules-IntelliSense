@@ -39,6 +39,10 @@ export class PathMapCache extends Array<string> {
     });
   }
 
+  hasKey(key: string): boolean {
+    return this.reverseMap.has(key);
+  }
+
   getKeyFormIndex(index: number) {
     return this[index];
   }
@@ -95,8 +99,11 @@ class BaseCache<V extends {}, FC = unknown> {
   }
 
   hasByKey(key: string): boolean {
-    const keyIndex = this.pathMapCache.getIndexFormKey(key);
-    return this.has(keyIndex);
+    if (!this.pathMapCache.hasKey(key)) {
+      return false;
+    }
+
+    return this.has(this.pathMapCache.getIndexFormKey(key));
   }
 
   getByKey(key: string) {
@@ -110,7 +117,7 @@ class BaseCache<V extends {}, FC = unknown> {
   }
 
   setMap(entries: readonly (readonly [string, V])[]) {
-    this.clear;
+    this.clear();
     entries.forEach((entry) => {
       this.setByKey(entry[0], entry[1]);
     });

@@ -43,7 +43,7 @@ export default class ClassNameCache {
         for (const workspacePath of dependents) {
           const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
           if (!resolvedPath) {
-            return;
+            continue;
           }
           const document = await vscode.workspace.openTextDocument(
             resolvedPath
