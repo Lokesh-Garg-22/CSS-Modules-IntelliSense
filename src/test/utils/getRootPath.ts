@@ -1,13 +1,14 @@
+import * as path from "path";
+
 const getRootPath = () => {
   const testDir = "dist";
-  const path = __dirname.split("/");
+  let dir = __dirname;
 
-  while (path[path.length - 1] !== testDir) {
-    path.pop();
+  while (path.basename(dir) !== testDir) {
+    dir = path.dirname(dir);
   }
-  path.pop();
 
-  return path.join("/");
+  return path.dirname(dir);
 };
 
 export default getRootPath;

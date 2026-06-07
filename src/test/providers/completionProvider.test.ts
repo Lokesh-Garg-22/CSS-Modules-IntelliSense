@@ -12,14 +12,17 @@ suite("Completion Provider Tests", function () {
     "assets/fixtures/fixture-1/Sample.jsx"
   );
 
+  suiteSetup(async () => {
+    await vscode.extensions
+      .getExtension(`${publisher}.${extensionName}`)
+      ?.activate();
+  });
+
   suiteTeardown(async () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
   test("Should provide completion for styles.container", async () => {
-    await vscode.extensions
-      .getExtension(`${publisher}.${extensionName}`)
-      ?.activate();
     const doc = await vscode.workspace.openTextDocument(samplePath);
     const editor = await vscode.window.showTextDocument(doc);
 
@@ -33,25 +36,26 @@ suite("Completion Provider Tests", function () {
       edit.insert(pos, ".");
     });
 
-    const completions: vscode.CompletionList =
-      await vscode.commands.executeCommand(
-        "vscode.executeCompletionItemProvider",
-        doc.uri,
-        pos.translate(0, 1)
+    try {
+      const completions: vscode.CompletionList =
+        await vscode.commands.executeCommand(
+          "vscode.executeCompletionItemProvider",
+          doc.uri,
+          pos.translate(0, 1)
+        );
+      assert.ok(completions);
+      assert.ok(completions!.items.length > 0);
+      const labels = completions.items.map((item) => item.label);
+      assert.ok(
+        labels.includes("container"),
+        'Expected to find "container" in completions'
       );
-    assert.ok(completions);
-    assert.ok(completions!.items.length > 0);
-    const labels = completions.items.map((item) => item.label);
-    assert.ok(
-      labels.includes("container"),
-      'Expected to find "container" in completions'
-    );
+    } finally {
+      await vscode.commands.executeCommand("undo");
+    }
   });
 
   test("Should provide all classes for styles", async () => {
-    await vscode.extensions
-      .getExtension(`${publisher}.${extensionName}`)
-      ?.activate();
     const doc = await vscode.workspace.openTextDocument(samplePath);
     const editor = await vscode.window.showTextDocument(doc);
 
@@ -65,21 +69,25 @@ suite("Completion Provider Tests", function () {
       edit.insert(pos, ".");
     });
 
-    const completions: vscode.CompletionList =
-      await vscode.commands.executeCommand(
-        "vscode.executeCompletionItemProvider",
-        doc.uri,
-        pos.translate(0, 1)
-      );
-    assert.ok(completions);
-    assert.ok(completions!.items.length >= 3);
-    const labels = completions.items.map((item) => item.label);
-    const expected = ["container", "box", "list"];
-    expected.forEach((item) => {
-      assert.ok(
-        labels.includes(item),
-        `Expected to find "${item}" in completions`
-      );
-    });
+    try {
+      const completions: vscode.CompletionList =
+        await vscode.commands.executeCommand(
+          "vscode.executeCompletionItemProvider",
+          doc.uri,
+          pos.translate(0, 1)
+        );
+      assert.ok(completions);
+      assert.ok(completions!.items.length >= 3);
+      const labels = completions.items.map((item) => item.label);
+      const expected = ["container", "box", "list"];
+      expected.forEach((item) => {
+        assert.ok(
+          labels.includes(item),
+          `Expected to find "${item}" in completions`
+        );
+      });
+    } finally {
+      await vscode.commands.executeCommand("undo");
+    }
   });
 });

@@ -16,16 +16,17 @@ suite("Rename Provider Tests", function () {
     "assets/fixtures/fixture-3/Sample.module.scss"
   );
 
+  suiteSetup(async () => {
+    await vscode.extensions
+      .getExtension(`${publisher}.${extensionName}`)
+      ?.activate();
+  });
+
   suiteTeardown(async () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
   });
 
   test("Rename 'container' to 'wrapper' inside CSS Module", async () => {
-    // Ensure extension is activated
-    await vscode.extensions
-      .getExtension(`${publisher}.${extensionName}`)
-      ?.activate();
-
     const doc = await vscode.workspace.openTextDocument(sampleScssPath);
 
     const lineNum = 0;
@@ -51,8 +52,11 @@ suite("Rename Provider Tests", function () {
 
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
-      path.resolve("assets/fixtures/fixture-3/Sample.jsx"),
-      path.resolve("assets/fixtures/fixture-3/Sample.module.scss"),
+      path.resolve(getRootPath(), "assets/fixtures/fixture-3/Sample.jsx"),
+      path.resolve(
+        getRootPath(),
+        "assets/fixtures/fixture-3/Sample.module.scss"
+      ),
     ].map((p) => vscode.Uri.file(p).fsPath); // normalize for platform
 
     const seenPaths = new Set<string>();
@@ -85,11 +89,6 @@ suite("Rename Provider Tests", function () {
   });
 
   test("Rename 'container' to 'wrapper' inside a Script", async () => {
-    // Ensure extension is activated
-    await vscode.extensions
-      .getExtension(`${publisher}.${extensionName}`)
-      ?.activate();
-
     const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
 
     const lineNum = 3;
@@ -115,8 +114,11 @@ suite("Rename Provider Tests", function () {
 
     const changes = workspaceEdit!.entries();
     const expectedPaths = [
-      path.resolve("assets/fixtures/fixture-3/Sample.jsx"),
-      path.resolve("assets/fixtures/fixture-3/Sample.module.scss"),
+      path.resolve(getRootPath(), "assets/fixtures/fixture-3/Sample.jsx"),
+      path.resolve(
+        getRootPath(),
+        "assets/fixtures/fixture-3/Sample.module.scss"
+      ),
     ].map((p) => vscode.Uri.file(p).fsPath); // normalize for platform
 
     const seenPaths = new Set<string>();

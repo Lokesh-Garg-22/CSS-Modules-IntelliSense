@@ -82,7 +82,7 @@ suite("Definition Provider Tests", function () {
 
     await Promise.all(
       locations.map(async (defLoc) => {
-        if (defLoc.targetUri.path.endsWith(sampleJsxPath)) {
+        if (defLoc.targetUri.fsPath === sampleJsxPath) {
           assert.ok(
             defLoc.targetSelectionRange,
             `Expected Target Selection Range for .container`
@@ -108,7 +108,7 @@ suite("Definition Provider Tests", function () {
               expectedRange
             )}, but got ${rangeToString(defLoc.targetSelectionRange)}`
           );
-        } else if (defLoc.targetUri.path.endsWith(sampleScssPath)) {
+        } else if (defLoc.targetUri.fsPath === sampleScssPath) {
           assert.ok(
             defLoc.targetSelectionRange,
             `Expected Target Selection Range for .container`
@@ -133,6 +133,10 @@ suite("Definition Provider Tests", function () {
             `Expected Range of \`container\` to be ${rangeToString(
               expectedRange
             )}, but got ${rangeToString(defLoc.targetSelectionRange)}`
+          );
+        } else {
+          assert.fail(
+            `Unexpected definition location: ${defLoc.targetUri.fsPath}`
           );
         }
       })
