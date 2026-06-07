@@ -56,8 +56,7 @@ css-modules-intellisense/
 │   │   ├── getPath.ts
 │   │   ├── getRegistry.ts
 │   │   ├── isDocumentModule.ts
-│   │   ├── isPositionInComment.ts
-│   │   ├── isPositionInString.ts
+│   │   ├── isPositionInScope.ts
 │   │   └── sanitizeCssInput.ts
 │   ├── config.ts               # Extension configuration
 │   └── extension.ts            # Extension entry point

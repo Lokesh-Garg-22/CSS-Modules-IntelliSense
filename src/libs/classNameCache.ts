@@ -52,7 +52,11 @@ export default class ClassNameCache {
             CheckDocument.push(document);
           }
         }
-      })().catch(console.error);
+      })()
+        .catch(console.error)
+        .finally(() => {
+          delete ClassNameCache.ClassNameCacheDebounceIdMap[importPath];
+        });
     }, DEBOUNCE_TIMER.UPDATE_CLASS_NAME);
   }
 
