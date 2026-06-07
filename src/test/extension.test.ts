@@ -17,7 +17,6 @@ suite("Extension Tests", function () {
   });
 
   test("Run Command Reset Cache", async function () {
-    this.timeout(10000);
     const result = await vscode.commands.executeCommand(
       "css-scss-modules-intellisense.resetCache"
     );

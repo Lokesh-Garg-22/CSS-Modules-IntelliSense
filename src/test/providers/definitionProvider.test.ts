@@ -17,10 +17,16 @@ suite("Definition Provider Tests", function () {
     "assets/fixtures/fixture-2/Sample.module.scss"
   );
 
+  let jsxDoc: vscode.TextDocument;
+  let scssDoc: vscode.TextDocument;
+
   suiteSetup(async () => {
     await vscode.extensions
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
+
+    jsxDoc = await vscode.workspace.openTextDocument(sampleJsxPath);
+    scssDoc = await vscode.workspace.openTextDocument(sampleScssPath);
   });
 
   suiteTeardown(async () => {
@@ -28,8 +34,8 @@ suite("Definition Provider Tests", function () {
   });
 
   test("Go-to-Definition jumps to .container in SCSS", async () => {
-    const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
-    await vscode.window.showTextDocument(doc);
+    await vscode.window.showTextDocument(jsxDoc);
+    const doc = jsxDoc;
     const pos = new vscode.Position(3, doc.lineAt(3).text.indexOf("container"));
     const locations: vscode.LocationLink[] =
       await vscode.commands.executeCommand(
@@ -72,8 +78,8 @@ suite("Definition Provider Tests", function () {
   });
 
   test("Go-to-Definition jumps to .container in Script", async () => {
-    const doc = await vscode.workspace.openTextDocument(sampleScssPath);
-    await vscode.window.showTextDocument(doc);
+    await vscode.window.showTextDocument(scssDoc);
+    const doc = scssDoc;
     const pos = new vscode.Position(0, doc.lineAt(0).text.indexOf("container"));
     const locations: vscode.LocationLink[] =
       await vscode.commands.executeCommand(

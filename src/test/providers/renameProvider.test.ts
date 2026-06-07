@@ -16,10 +16,16 @@ suite("Rename Provider Tests", function () {
     "assets/fixtures/fixture-3/Sample.module.scss"
   );
 
+  let jsxDoc: vscode.TextDocument;
+  let scssDoc: vscode.TextDocument;
+
   suiteSetup(async () => {
     await vscode.extensions
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
+
+    jsxDoc = await vscode.workspace.openTextDocument(sampleJsxPath);
+    scssDoc = await vscode.workspace.openTextDocument(sampleScssPath);
   });
 
   suiteTeardown(async () => {
@@ -27,7 +33,7 @@ suite("Rename Provider Tests", function () {
   });
 
   test("Rename 'container' to 'wrapper' inside CSS Module", async () => {
-    const doc = await vscode.workspace.openTextDocument(sampleScssPath);
+    const doc = scssDoc;
 
     const lineNum = 0;
     const lineText = doc.lineAt(lineNum).text;
@@ -89,7 +95,7 @@ suite("Rename Provider Tests", function () {
   });
 
   test("Rename 'container' to 'wrapper' inside a Script", async () => {
-    const doc = await vscode.workspace.openTextDocument(sampleJsxPath);
+    const doc = jsxDoc;
 
     const lineNum = 3;
     const lineText = doc.lineAt(lineNum).text;

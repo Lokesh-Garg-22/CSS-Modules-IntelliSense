@@ -12,10 +12,16 @@ suite("Completion Provider Tests", function () {
     "assets/fixtures/fixture-1/Sample.jsx"
   );
 
+  let doc: vscode.TextDocument;
+  let editor: vscode.TextEditor;
+
   suiteSetup(async () => {
     await vscode.extensions
       .getExtension(`${publisher}.${extensionName}`)
       ?.activate();
+
+    doc = await vscode.workspace.openTextDocument(samplePath);
+    editor = await vscode.window.showTextDocument(doc);
   });
 
   suiteTeardown(async () => {
@@ -23,9 +29,6 @@ suite("Completion Provider Tests", function () {
   });
 
   test("Should provide completion for styles.container", async () => {
-    const doc = await vscode.workspace.openTextDocument(samplePath);
-    const editor = await vscode.window.showTextDocument(doc);
-
     // Go to position after "styles"
     const lineNum = 3;
     const pos = new vscode.Position(
@@ -56,9 +59,6 @@ suite("Completion Provider Tests", function () {
   });
 
   test("Should provide all classes for styles", async () => {
-    const doc = await vscode.workspace.openTextDocument(samplePath);
-    const editor = await vscode.window.showTextDocument(doc);
-
     // Go to position after "styles"
     const lineNum = 3;
     const pos = new vscode.Position(
