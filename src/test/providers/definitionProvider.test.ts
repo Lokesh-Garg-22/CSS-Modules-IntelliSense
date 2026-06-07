@@ -3,6 +3,7 @@ import * as assert from "assert";
 import * as vscode from "vscode";
 import getRootPath from "../utils/getRootPath";
 import { rangeToString } from "../utils/utils";
+import { extensionName, publisher } from "../config";
 
 suite("Definition Provider Tests", function () {
   this.timeout(60000);
@@ -15,6 +16,12 @@ suite("Definition Provider Tests", function () {
     getRootPath(),
     "assets/fixtures/fixture-2/Sample.module.scss"
   );
+
+  suiteSetup(async () => {
+    await vscode.extensions
+      .getExtension(`${publisher}.${extensionName}`)
+      ?.activate();
+  });
 
   suiteTeardown(async () => {
     await vscode.commands.executeCommand("workbench.action.closeAllEditors");
