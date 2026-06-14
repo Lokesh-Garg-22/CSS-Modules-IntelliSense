@@ -10,6 +10,10 @@ import {
   getWorkspaceRelativeImportPath,
   resolveImportPathWithAliases,
 } from "../utils/getPath";
+import {
+  getClassNotDefinedEnabled,
+  getClassNotDefinedSeverity,
+} from "./vsConfig";
 import getAllClassNames from "../utils/getAllClassNames";
 import getAllImportModulePaths from "../utils/getAllImportModulePaths";
 import ClassNameCache from "./classNameCache";
@@ -137,6 +141,8 @@ export default class CheckDocument {
       return;
     }
 
+    const classNotDefinedEnabled = getClassNotDefinedEnabled();
+    const classNotDefinedSeverity = getClassNotDefinedSeverity();
     const diagnostics: vscode.Diagnostic[] = [];
     const importMatches = await getAllImportModulePaths(document);
 
@@ -167,23 +173,24 @@ export default class CheckDocument {
 
         const classNamesData = await getAllClassNames(importVar, document);
 
-        for (const classNameData of classNamesData) {
-          const className = classNameData.className;
+        if (classNotDefinedEnabled) {
+          for (const classNameData of classNamesData) {
+            const className = classNameData.className;
 
-          if (
-            !(await ClassNameCache.hasClassNameFromImportPath(
-              className,
-              getWorkspaceRelativeImportPath(document, importPath)
-            ))
-          ) {
-            const range = classNameData.range;
-            diagnostics.push(
-              new vscode.Diagnostic(
-                range,
-                MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
-                vscode.DiagnosticSeverity.Warning
-              )
-            );
+            if (
+              !(await ClassNameCache.hasClassNameFromImportPath(
+                className,
+                getWorkspaceRelativeImportPath(document, importPath)
+              ))
+            ) {
+              diagnostics.push(
+                new vscode.Diagnostic(
+                  classNameData.range,
+                  MESSAGES.DIAGNOSTIC.CLASS_NOT_DEFINED(className, importPath),
+                  classNotDefinedSeverity
+                )
+              );
+            }
           }
         }
       })

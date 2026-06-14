@@ -2,11 +2,6 @@
 
 ## Enhancements
 
-- Add `cssModulesIntellisense.diagnostics.classNotDefined.enabled` (boolean) and
-  `cssModulesIntellisense.diagnostics.classNotDefined.severity`
-  (`"error" | "warning" | "info" | "hint"`)
-  settings to control the "class not defined" diagnostic in `analyzeDocument`.
-
 - Add `cssModulesIntellisense.diagnostics.classNotUsed.enabled` (boolean) and
   `cssModulesIntellisense.diagnostics.classNotUsed.severity`
   (`"error" | "warning" | "info" | "hint"`)

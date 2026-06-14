@@ -89,6 +89,17 @@
           "description": "Maximum number of CSS module files to keep in the class name cache (LRU). Increase for projects with many CSS module files.",
           "default": 5,
           "minimum": 1
+        },
+        "cssModulesIntellisense.diagnostics.classNotDefined.enabled": {
+          "type": "boolean",
+          "description": "Enable the 'class not defined' diagnostic.",
+          "default": true
+        },
+        "cssModulesIntellisense.diagnostics.classNotDefined.severity": {
+          "type": "string",
+          "description": "Severity level of the 'class not defined' diagnostic.",
+          "enum": ["error", "warning", "info", "hint"],
+          "default": "warning"
         }
       }
     },

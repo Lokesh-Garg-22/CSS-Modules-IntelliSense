@@ -53,8 +53,22 @@ export const CONFIGURATIONS = {
   PROCESS_ON_EDIT: "processOnEdit",
   PROCESS_ON_SAVE: "processOnSave",
   CLASS_NAME_CACHE_SIZE: "classNameCacheSize",
+  DIAGNOSTICS: {
+    CLASS_NOT_DEFINED: {
+      ENABLED: "diagnostics.classNotDefined.enabled",
+      SEVERITY: "diagnostics.classNotDefined.severity",
+    },
+  },
 };
 
-export const DEFAULT_CLASS_NAME_CACHE_SIZE = 5;
+export const CONFIGURATION_DEFAULTS = {
+  CLASS_NAME_CACHE_SIZE: 5,
+  DIAGNOSTICS: {
+    CLASS_NOT_DEFINED: {
+      ENABLED: true,
+      SEVERITY: "warning" as const,
+    },
+  },
+};
 
 export const CSS_MODULES_CACHE_FILENAME = "cache.json";
