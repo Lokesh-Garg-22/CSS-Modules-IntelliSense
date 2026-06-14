@@ -18,6 +18,8 @@ All notable changes to this project will be documented in this file.
 
 ### Fixed
 
+- `//` comments in CSS module files caused incorrect class name positions due
+  to extra newlines being inserted during sanitization.
 - Minor Bugs
 
 ## [0.1.5] – 2026-01-27
