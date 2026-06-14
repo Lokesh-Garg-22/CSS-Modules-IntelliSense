@@ -11,6 +11,10 @@ All notable changes to this project will be documented in this file.
 - `cssModulesIntellisense.diagnostics.classNotDefined.enabled` and
   `cssModulesIntellisense.diagnostics.classNotDefined.severity` settings to
   control the "class not defined" diagnostic.
+- `cssModulesIntellisense.diagnostics.classNotUsed.enabled` and
+  `cssModulesIntellisense.diagnostics.classNotUsed.severity` settings to
+  show a "class not used" diagnostic on CSS module files (disabled by
+  default).
 
 ### Fixed
 

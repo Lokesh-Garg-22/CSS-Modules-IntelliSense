@@ -39,6 +39,8 @@ export default class ClassNameCache {
         await ClassNameCache.extractFromUri(e.uri);
 
         if (SUPPORTED_MODULES.includes(e.languageId)) {
+          CheckDocument.push(e);
+
           const dependents =
             CssModuleDependencyCache.getDependentsForDocument(e);
 

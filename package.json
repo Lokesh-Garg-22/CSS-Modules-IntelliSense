@@ -100,6 +100,17 @@
           "description": "Severity level of the 'class not defined' diagnostic.",
           "enum": ["error", "warning", "info", "hint"],
           "default": "warning"
+        },
+        "cssModulesIntellisense.diagnostics.classNotUsed.enabled": {
+          "type": "boolean",
+          "description": "Enable the 'class not used' diagnostic on CSS module files.",
+          "default": false
+        },
+        "cssModulesIntellisense.diagnostics.classNotUsed.severity": {
+          "type": "string",
+          "description": "Severity level of the 'class not used' diagnostic.",
+          "enum": ["error", "warning", "info", "hint"],
+          "default": "warning"
         }
       }
     },

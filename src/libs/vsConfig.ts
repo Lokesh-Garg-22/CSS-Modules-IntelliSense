@@ -40,3 +40,17 @@ export const getClassNotDefinedSeverity = (): vscode.DiagnosticSeverity =>
       CONFIGURATION_DEFAULTS.DIAGNOSTICS.CLASS_NOT_DEFINED.SEVERITY
     )
   ] ?? vscode.DiagnosticSeverity.Warning;
+
+export const getClassNotUsedEnabled = (): boolean =>
+  getVsConfig().get<boolean>(
+    CONFIGURATIONS.DIAGNOSTICS.CLASS_NOT_USED.ENABLED,
+    CONFIGURATION_DEFAULTS.DIAGNOSTICS.CLASS_NOT_USED.ENABLED
+  );
+
+export const getClassNotUsedSeverity = (): vscode.DiagnosticSeverity =>
+  SEVERITY_MAP[
+    getVsConfig().get<string>(
+      CONFIGURATIONS.DIAGNOSTICS.CLASS_NOT_USED.SEVERITY,
+      CONFIGURATION_DEFAULTS.DIAGNOSTICS.CLASS_NOT_USED.SEVERITY
+    )
+  ] ?? vscode.DiagnosticSeverity.Warning;
