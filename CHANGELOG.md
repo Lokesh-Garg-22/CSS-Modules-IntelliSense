@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 - `cssModulesIntellisense.classNameCacheSize` setting to configure the LRU
   class name cache size (default: 5).
+- `cssModulesIntellisense.diagnostics.classNotDefined.enabled` and
+  `cssModulesIntellisense.diagnostics.classNotDefined.severity` settings to
+  control the "class not defined" diagnostic.
 
 ### Fixed
 
