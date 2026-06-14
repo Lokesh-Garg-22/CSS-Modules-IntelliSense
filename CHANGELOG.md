@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.1.6] – 2026-06-14
+
 ### Added
 
 - `cssModulesIntellisense.classNameCacheSize` setting to configure the LRU
@@ -157,3 +159,5 @@ All notable changes to this project will be documented in this file.
 [0.1.3]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.2...v0.1.3
 [0.1.4]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.3...v0.1.4
 [0.1.5]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.4...v0.1.5
+
+[0.1.6]: https://github.com/Lokesh-Garg-22/CSS-Modules-IntelliSense/compare/v0.1.5...v0.1.6

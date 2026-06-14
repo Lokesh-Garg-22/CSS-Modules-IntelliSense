@@ -2,7 +2,7 @@
   "name": "css-scss-modules-intellisense",
   "displayName": "CSS/SCSS Modules IntelliSense",
   "description": "Linter and tooling for CSS Modules with support for SCSS, LESS, Go-to-Definition, and Rename in JS/TS files.",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "icon": "icon.png",
   "publisher": "lokesh-garg",
   "repository": {
@@ -98,7 +98,12 @@
         "cssModulesIntellisense.diagnostics.classNotDefined.severity": {
           "type": "string",
           "description": "Severity level of the 'class not defined' diagnostic.",
-          "enum": ["error", "warning", "info", "hint"],
+          "enum": [
+            "error",
+            "warning",
+            "info",
+            "hint"
+          ],
           "default": "warning"
         },
         "cssModulesIntellisense.diagnostics.classNotUsed.enabled": {
@@ -109,7 +114,12 @@
         "cssModulesIntellisense.diagnostics.classNotUsed.severity": {
           "type": "string",
           "description": "Severity level of the 'class not used' diagnostic.",
-          "enum": ["error", "warning", "info", "hint"],
+          "enum": [
+            "error",
+            "warning",
+            "info",
+            "hint"
+          ],
           "default": "warning"
         }
       }
