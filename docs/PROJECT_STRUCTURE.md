@@ -24,6 +24,8 @@ css-modules-intellisense/
 │   └── scss-language-configuration.json
 ├── dist/                       # Compiled output (generated)
 ├── docs/                       # Documentation
+│   ├── CONTEXT.md              # Architecture, data flow, and design decisions
+│   ├── PROJECT_STRUCTURE.md    # Codebase layout (this file)
 │   └── TODO.md                 # Tasks and known issues
 ├── node_modules/               # Dependencies (generated)
 ├── src/                        # Source code
@@ -40,6 +42,15 @@ css-modules-intellisense/
 │   │   ├── definitionProvider.ts    # Go-to-definition
 │   │   └── renameProvider.ts        # Symbol renaming
 │   ├── test/                   # Test files
+│   │   ├── providers/          # Provider-specific tests
+│   │   │   ├── completionProvider.test.ts
+│   │   │   ├── definitionProvider.test.ts
+│   │   │   └── renameProvider.test.ts
+│   │   ├── utils/              # Test utilities
+│   │   │   ├── getRootPath.ts
+│   │   │   └── utils.ts
+│   │   ├── config.ts           # Test configuration
+│   │   └── extension.test.ts   # Extension-level tests
 │   ├── types/                  # TypeScript type definitions
 │   │   ├── cache.ts
 │   │   └── classNameData.ts
