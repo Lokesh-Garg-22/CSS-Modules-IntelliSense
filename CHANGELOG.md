@@ -20,6 +20,9 @@ All notable changes to this project will be documented in this file.
 
 - `//` comments in CSS module files caused incorrect class name positions due
   to extra newlines being inserted during sanitization.
+- Loading the cache from disk caused phantom entries in `pathMapCache` because
+  numeric index keys were being re-inserted as path strings. Deserialized
+  `vscode.Range` objects are now also properly reconstructed from plain JSON.
 - Minor Bugs
 
 ## [0.1.5] – 2026-01-27
