@@ -16,6 +16,8 @@ export const isLRUCache = <K extends {}, V extends {}, FC = unknown>(
 export class PathMapCache extends Array<string> {
   protected reverseMap = new Map<string, number>();
 
+  // Array mutation — keep the array and reverseMap in sync
+
   clear() {
     while (this.length) {
       this.pop();
@@ -38,6 +40,8 @@ export class PathMapCache extends Array<string> {
       this.push(entry);
     });
   }
+
+  // Index ↔ key lookups — getIndexFormKey auto-inserts the key if not present (side effect)
 
   hasKey(key: string): boolean {
     return this.reverseMap.has(key);
@@ -69,6 +73,8 @@ class BaseCache<V extends {}, FC = unknown> {
     this.pathMapCache = pathMapCache;
   }
 
+  // Direct index access — operate on the internal numeric index, bypassing PathMapCache
+
   clear() {
     return this.cache.clear();
   }
@@ -85,6 +91,15 @@ class BaseCache<V extends {}, FC = unknown> {
     this.cache.set(key, value);
     return this;
   }
+  setMap(entries: readonly (readonly [number, V])[]) {
+    this.clear();
+    entries.forEach((entry) => {
+      this.set(entry[0], entry[1]);
+    });
+  }
+
+  // Iteration — expose the underlying cache's iteration interface
+
   entries() {
     return this.cache.entries();
   }
@@ -97,6 +112,8 @@ class BaseCache<V extends {}, FC = unknown> {
   [Symbol.iterator]() {
     return this.cache[Symbol.iterator]();
   }
+
+  // Path string access — translate a path string to its numeric index via PathMapCache, then operate
 
   hasByKey(key: string): boolean {
     if (!this.pathMapCache.hasKey(key)) {
@@ -116,7 +133,7 @@ class BaseCache<V extends {}, FC = unknown> {
     return this.set(keyIndex, value);
   }
 
-  setMap(entries: readonly (readonly [string, V])[]) {
+  setMapByKey(entries: readonly (readonly [string, V])[]) {
     this.clear();
     entries.forEach((entry) => {
       this.setByKey(entry[0], entry[1]);
@@ -137,6 +154,10 @@ export class ModulePathCacheSet extends Set<number> {
     this.pathMapCache = pathMapCache;
   }
 
+  // Direct index access (add/has/delete) is inherited from Set<number>
+
+  // Path string access — translate to numeric index via PathMapCache before operating
+
   addByKey(value: string): this {
     const valueIndex = this.pathMapCache.getIndexFormKey(value);
     return this.add(valueIndex);
@@ -153,6 +174,7 @@ export class ModulePathCache extends BaseCache<ModulePathCacheSet> {
     super(pathMap, new Map<number, ModulePathCacheSet>());
   }
 
+  // Creates an empty dependent set and registers it under the given CSS module path
   createKey(key: string) {
     const set = new ModulePathCacheSet(this.pathMapCache);
     this.setByKey(key, set);
@@ -180,6 +202,7 @@ export class ClassNameCache extends BaseCache<ClassNameRangeMap> {
       | LRUCache<number, ClassNameRangeMap>
       | LRUCache.Options<number, ClassNameRangeMap, unknown>
   ) {
+    // Intermediate variable needed to satisfy the BaseCache constructor's union type
     const lruCache: ConstructorParameters<
       typeof BaseCache<ClassNameRangeMap>
     >[1] = new LRUCache(options);

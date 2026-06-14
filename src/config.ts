@@ -32,6 +32,7 @@ export const MESSAGES = {
     CANNOT_FIND_MODULE: (s: string) => `Cannot find module '${s}'`,
     CLASS_NOT_DEFINED: (s1: string, s2: string) =>
       `Class '${s1}' is not defined in ${s2}`,
+    CLASS_NOT_USED: (s: string) => `Class '${s}' is never used`,
   },
   COMPLETION: {
     CSS_MODULE_CLASS: "CSS Module class",
@@ -58,6 +59,10 @@ export const CONFIGURATIONS = {
       ENABLED: "diagnostics.classNotDefined.enabled",
       SEVERITY: "diagnostics.classNotDefined.severity",
     },
+    CLASS_NOT_USED: {
+      ENABLED: "diagnostics.classNotUsed.enabled",
+      SEVERITY: "diagnostics.classNotUsed.severity",
+    },
   },
 };
 
@@ -66,6 +71,10 @@ export const CONFIGURATION_DEFAULTS = {
   DIAGNOSTICS: {
     CLASS_NOT_DEFINED: {
       ENABLED: true,
+      SEVERITY: "warning" as const,
+    },
+    CLASS_NOT_USED: {
+      ENABLED: false,
       SEVERITY: "warning" as const,
     },
   },

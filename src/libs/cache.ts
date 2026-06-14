@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
-import type * as vscode from "vscode";
+import * as vscode from "vscode";
 import { CSS_MODULES_CACHE_FILENAME, DEBOUNCE_TIMER } from "../config";
 import { getClassNameCacheSize } from "./vsConfig";
 import {
@@ -148,19 +148,34 @@ export default class Cache {
       this.pathMapCache.setArray(parsed.pathMapCache ?? []);
 
       this.modulePathCache.setMap(
-        Object.entries(parsed.modulePathCache ?? {}).map(
-          ([key, valueArray]) => [
-            key,
+        Object.entries(parsed.modulePathCache ?? {})
+          .filter(([key]) => Number.isInteger(Number(key)))
+          .map(([key, valueArray]) => [
+            Number(key),
             new ModulePathCacheSet(this.pathMapCache, valueArray),
-          ]
-        )
+          ])
       );
 
       this.classNameCache.setMap(
-        Object.entries(parsed.classNameCache ?? {}).map(([key, value]) => [
-          key,
-          new ClassNameRangeMap(Object.entries(value)),
-        ])
+        Object.entries(parsed.classNameCache ?? {})
+          .filter(([key]) => Number.isInteger(Number(key)))
+          .map(([key, value]) => [
+            Number(key),
+            new ClassNameRangeMap(
+              Object.entries(value).map(([className, ranges]) => [
+                className,
+                ranges.map((r) => ({
+                  range: new vscode.Range(
+                    new vscode.Position(
+                      r.range.start.line,
+                      r.range.start.character
+                    ),
+                    new vscode.Position(r.range.end.line, r.range.end.character)
+                  ),
+                })),
+              ])
+            ),
+          ])
       );
     } catch (error) {
       console.error("Error loading cache:", error);

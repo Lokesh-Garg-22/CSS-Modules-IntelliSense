@@ -39,6 +39,8 @@ export default class ClassNameCache {
         await ClassNameCache.extractFromUri(e.uri);
 
         if (SUPPORTED_MODULES.includes(e.languageId)) {
+          CheckDocument.push(e);
+
           const dependents =
             CssModuleDependencyCache.getDependentsForDocument(e);
 
@@ -245,10 +247,16 @@ export default class ClassNameCache {
         return;
       }
 
+      const line = Math.min(ruleStart.line - 1, document.lineCount - 1);
+      const character = Math.min(
+        ruleStart.column - 1,
+        document.lineAt(line).text.length
+      );
+
       if (
         await isPositionInComment(
           document,
-          new vscode.Position(ruleStart.line - 1, ruleStart.column - 1)
+          new vscode.Position(line, character)
         )
       ) {
         return;
@@ -260,9 +268,8 @@ export default class ClassNameCache {
 
           // Compute position in the document
           const selectorOffsetInDoc =
-            document.offsetAt(
-              new vscode.Position(ruleStart.line - 1, ruleStart.column - 1)
-            ) + sourceIndex;
+            document.offsetAt(new vscode.Position(line, character)) +
+            sourceIndex;
 
           const data: ClassNameRange = {
             range: new vscode.Range(

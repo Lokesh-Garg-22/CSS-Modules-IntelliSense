@@ -5,18 +5,24 @@ import {
   MAX_CHECK_DOCUMENT_QUEUE_LENGTH,
   MESSAGES,
   SUPPORTED_LANGS,
+  SUPPORTED_MODULES,
 } from "../config";
 import {
   getWorkspaceRelativeImportPath,
+  getWorkspaceRelativeUriPath,
   resolveImportPathWithAliases,
+  resolveWorkspaceRelativePath,
 } from "../utils/getPath";
 import {
   getClassNotDefinedEnabled,
   getClassNotDefinedSeverity,
+  getClassNotUsedEnabled,
+  getClassNotUsedSeverity,
 } from "./vsConfig";
 import getAllClassNames from "../utils/getAllClassNames";
 import getAllImportModulePaths from "../utils/getAllImportModulePaths";
 import ClassNameCache from "./classNameCache";
+import CssModuleDependencyCache from "./cssModuleDependencyCache";
 
 /**
  * Class responsible for analyzing script documents to validate usage of CSS Modules.
@@ -130,17 +136,28 @@ export default class CheckDocument {
   }
 
   /**
-   * Analyzes the given document for correct CSS Module usage.
+   * Routes the document to the appropriate analyzer based on language.
    *
    * @param document - The text document to analyze.
    */
   private static async analyzeDocument(
     document: vscode.TextDocument
   ): Promise<void> {
-    if (!SUPPORTED_LANGS.includes(document.languageId)) {
-      return;
+    if (SUPPORTED_LANGS.includes(document.languageId)) {
+      await this.analyzeScriptDocument(document);
+    } else if (SUPPORTED_MODULES.includes(document.languageId)) {
+      await this.analyzeModuleDocument(document);
     }
+  }
 
+  /**
+   * Analyzes a JS/TS document for correct CSS Module usage.
+   *
+   * @param document - The text document to analyze.
+   */
+  private static async analyzeScriptDocument(
+    document: vscode.TextDocument
+  ): Promise<void> {
     const classNotDefinedEnabled = getClassNotDefinedEnabled();
     const classNotDefinedSeverity = getClassNotDefinedSeverity();
     const diagnostics: vscode.Diagnostic[] = [];
@@ -195,6 +212,67 @@ export default class CheckDocument {
         }
       })
     );
+
+    this.diagnosticCollection.set(document.uri, diagnostics);
+  }
+
+  /**
+   * Analyzes a CSS module document for unused class names.
+   *
+   * @param document - The CSS module text document to analyze.
+   */
+  private static async analyzeModuleDocument(
+    document: vscode.TextDocument
+  ): Promise<void> {
+    const classNotUsedEnabled = getClassNotUsedEnabled();
+    const classNotUsedSeverity = getClassNotUsedSeverity();
+    const diagnostics: vscode.Diagnostic[] = [];
+
+    if (classNotUsedEnabled) {
+      const definedClasses = await ClassNameCache.getClassNames({ document });
+      const dependents =
+        CssModuleDependencyCache.getDependentsForDocument(document);
+      const moduleImportPath = getWorkspaceRelativeUriPath(document.uri);
+
+      const usedClasses = new Set<string>();
+      await Promise.all(
+        dependents.map(async (workspacePath) => {
+          const resolvedPath = resolveWorkspaceRelativePath(workspacePath);
+          if (!resolvedPath) {
+            return;
+          }
+          const depDoc = await vscode.workspace.openTextDocument(resolvedPath);
+          const imports = await getAllImportModulePaths(depDoc);
+          for (const [, importVar, importPath] of imports) {
+            if (
+              getWorkspaceRelativeImportPath(depDoc, importPath) ===
+              moduleImportPath
+            ) {
+              const classNamesData = await getAllClassNames(importVar, depDoc);
+              classNamesData.forEach((c) => usedClasses.add(c.className));
+            }
+          }
+        })
+      );
+
+      for (const className of definedClasses ?? []) {
+        if (!usedClasses.has(className)) {
+          const ranges = await ClassNameCache.getClassNameData({
+            document,
+            className,
+          });
+          for (const { range } of ranges ?? []) {
+            diagnostics.push(
+              new vscode.Diagnostic(
+                range,
+                MESSAGES.DIAGNOSTIC.CLASS_NOT_USED(className),
+                classNotUsedSeverity
+              )
+            );
+          }
+        }
+      }
+    }
 
     this.diagnosticCollection.set(document.uri, diagnostics);
   }
